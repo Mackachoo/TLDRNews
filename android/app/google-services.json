@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "628191602084",
+    "project_id": "tldr-news-229ac",
+    "storage_bucket": "tldr-news-229ac.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:628191602084:android:1e26641b7bbe63f3d64d31",
+        "android_client_info": {
+          "package_name": "com.tldrnews.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC29MnnNOIDPEuVMHkXzopjiQYE6W6NESk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

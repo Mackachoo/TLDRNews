@@ -1,0 +1,19 @@
+targets:
+  $default:
+    builders:
+      tldrnews_app:settings_builder:
+        enabled: true
+        generate_for:
+          - lib/src/screens/settings/settings_controller.json
+      source_gen:combining_builder:
+        generate_for:
+          exclude:
+            - lib/src/screens/settings/settings_controller.dart
+
+builders:
+  settings_builder:
+    import: "package:tldrnews_app/src/utils/settings_generator.dart"
+    builder_factories: ["settingsBuilder"]
+    build_extensions:
+      { "settings_controller.json": ["settings_controller.g.dart"] }
+    build_to: source

@@ -10,15 +10,42 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+
+  #Core
+  go_router: ^17.2.0
+  shared_preferences: ^2.5.5
+  chewie: ^1.13.0
+
+  # Firebase
+  firebase_core: ^4.6.0
+  firebase_auth: ^6.3.0
+  cloud_firestore: ^6.2.0
+  firebase_analytics: ^12.2.0
+  firebase_app_check: ^0.4.2
+
+  # UX
   cupertino_icons: ^1.0.8
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  json_serializable: ^6.9.5
+  build_runner: ^2.4.13
+  source_gen: ^2.0.0
+  build: ^2.4.1
 
 flutter:
   uses-material-design: true
-
-assets:
-  - assets/
+  generate: true
+  assets:
+    - assets/
+  fonts:
+    - family: Assistant
+      fonts:
+        - asset: assets/fonts/Assistant-VariableFont_wght.ttf
+    - family: Figtree
+      fonts:
+        - asset: assets/fonts/Figtree-VariableFont_wght.ttf
+        - asset: assets/fonts/Figtree-Italic-VariableFont_wght.ttf
+          style: italic

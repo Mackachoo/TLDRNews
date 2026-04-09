@@ -1,0 +1,15 @@
+{
+    "core": {},
+    "appearance": {
+        "theme": {
+            "type": "ThemeMode",
+            "default": "ThemeMode.light"
+        }
+    },
+    "notifications": {
+        "all": {
+            "type": "bool",
+            "default": "false"
+        }
+    }
+}
