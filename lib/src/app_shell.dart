@@ -20,9 +20,9 @@ class AppShell extends StatelessWidget {
           if (orientation == .landscape) navbar(context),
           Expanded(
             child: Container(
-              alignment: .center,
+              alignment: .topCenter,
               constraints: BoxConstraints(maxWidth: 800),
-              child: SingleChildScrollView(child: child),
+              child: child,
             ),
           ),
         ],

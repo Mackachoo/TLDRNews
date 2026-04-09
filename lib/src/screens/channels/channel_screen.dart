@@ -9,11 +9,19 @@ class ChannelScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return DefaultTabController(
       length: 2,
-      child: const TabBarView(
-        children: [
-          Center(child: Text('Videos')),
-          Center(child: Text('Series')),
-        ],
+      child: Scaffold(
+        appBar: TabBar(
+          tabs: [
+            Tab(text: 'Videos'),
+            Tab(text: 'Series'),
+          ],
+        ),
+        body: const TabBarView(
+          children: [
+            Center(child: Text('Videos')),
+            Center(child: Text('Series')),
+          ],
+        ),
       ),
     );
   }
