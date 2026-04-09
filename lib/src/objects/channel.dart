@@ -1,5 +1,7 @@
 import 'dart:ui';
 
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:tldrnews_app/src/utils/extensions/core.dart';
 import 'package:tldrnews_app/src/widgets/channel_icon.dart';
 
@@ -12,8 +14,6 @@ class Channel {
 }
 
 class Channels {
-  static List<Channel> get all => [uk, global, eu, business, podcasts];
-
   static Channel get uk => Channel(
     id: 'uk',
     name: 'TLDR UK',
@@ -44,4 +44,21 @@ class Channels {
   );
 
   static Channel? byId(String id) => all.firstWhereOrNull((channel) => channel.id == id);
+
+  static List<Channel> get all => [uk, global, eu, business, podcasts];
+  static List<IconButton> buttons(BuildContext context, [String? active]) {
+    final channels = Channels.all;
+    return channels
+        .map(
+          (c) => IconButton(
+            padding: .symmetric(horizontal: 3),
+            onPressed: () => context.pushReplacement('/channel/${c.id}'),
+            icon: ColorFiltered(
+              colorFilter: ColorFilter.saturation(active == null || active == c.id ? 1 : 0),
+              child: c.icon,
+            ),
+          ),
+        )
+        .toList();
+  }
 }
