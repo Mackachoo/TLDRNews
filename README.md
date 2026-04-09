@@ -1,4 +1,4 @@
-# tldrnews_app
+# TLDR News App
 
 A new Flutter project.
 

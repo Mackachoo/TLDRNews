@@ -35,7 +35,7 @@ class ChannelSnippets {
             padding: .symmetric(horizontal: 3),
             onPressed: () => context.pushReplacement('/channel/${c.id}'),
             icon: ColorFiltered(
-              colorFilter: ColorFilter.saturation(active == null || active == c.id ? 1 : 0),
+              colorFilter: ColorFilter.saturation(active == null || active == c.id ? 1 : 0.2),
               child: c.icon,
             ),
           ),
