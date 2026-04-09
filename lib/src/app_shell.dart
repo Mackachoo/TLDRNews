@@ -2,28 +2,40 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:tldrnews_app/src/objects/channel.dart';
-import 'package:tldrnews_app/src/screens/screen.dart';
 
 class AppShell extends StatelessWidget {
-  const AppShell({super.key, required this.screen, required this.state});
+  const AppShell({
+    super.key,
+    required this.child,
+    this.title = 'TLDR News',
+    this.includeNavbar = true,
+    this.appbarBottom,
+  });
 
-  final Screen screen;
-  final GoRouterState state;
+  final Widget child;
+  final String title;
+  final bool includeNavbar;
+  final PreferredSizeWidget? appbarBottom;
 
   @override
   Widget build(BuildContext context) {
     final orientation = MediaQuery.of(context).orientation;
+
     return Scaffold(
-      appBar: screen.appbar ?? appBar(context),
-      bottomNavigationBar: orientation == .portrait ? screen.navbar ?? navbar(context) : null,
+      appBar: appBar(context, title: title, bottom: appbarBottom),
+      bottomNavigationBar: orientation == .portrait && includeNavbar == true
+          ? navbar(context)
+          : null,
       body: Row(
         children: [
-          if (orientation == .landscape) screen.navbar ?? navbar(context),
+          if (orientation == .landscape && includeNavbar == true) navbar(context),
           Expanded(
             child: Container(
               alignment: .center,
               constraints: BoxConstraints(maxWidth: 800),
-              child: SingleChildScrollView(child: screen),
+              child: SingleChildScrollView(
+                child: Padding(padding: .all(16), child: child),
+              ),
             ),
           ),
         ],
@@ -31,11 +43,7 @@ class AppShell extends StatelessWidget {
     );
   }
 
-  static AppBar appBar(
-    BuildContext context, {
-    String title = 'TLDR News',
-    PreferredSizeWidget? bottom,
-  }) {
+  AppBar appBar(BuildContext context, {String? title, PreferredSizeWidget? bottom}) {
     final route = GoRouterState.of(context).uri.toString();
 
     return AppBar(
@@ -43,7 +51,7 @@ class AppShell extends StatelessWidget {
         onPressed: () => context.go('/'),
         icon: Image.asset('assets/logos/tldr-white.png'),
       ),
-      title: Text(title),
+      title: Text(title ?? 'TLDR News'),
       actions: [
         if (route == '/settings')
           IconButton(
