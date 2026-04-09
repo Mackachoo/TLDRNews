@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:tldrnews_app/src/utils/extensions/core.dart';
 import 'package:tldrnews_app/src/widgets/channel_icon.dart';
 
 class Channel {
@@ -41,6 +42,8 @@ class Channels {
       background: 'assets/backgrounds/podcasts.png',
     ),
   );
+
+  static Channel? byId(String id) => all.firstWhereOrNull((channel) => channel.id == id);
 
   static List<Channel> get all => [uk, global, eu, business, podcasts];
   static List<IconButton> buttons(BuildContext context, [String? active]) {
