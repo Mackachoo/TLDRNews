@@ -14,16 +14,19 @@ class SettingsScreen extends StatelessWidget {
       builder: (context, child) {
         return Container(
           color: context.colors.surface,
-          child: ListView(
-            padding: .all(16),
-            children: [
-              Text('Settings', style: Theme.of(context).textTheme.headlineMedium),
-              SizedBox(height: 8),
-              themeModeTile(),
-              SizedBox(height: 16),
-              Text('Notifications', style: Theme.of(context).textTheme.headlineSmall),
-              allNotificationsTile(),
-            ],
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: 600),
+            child: ListView(
+              padding: .all(16),
+              children: [
+                Text('Settings', style: Theme.of(context).textTheme.headlineMedium),
+                SizedBox(height: 8),
+                themeModeTile(),
+                SizedBox(height: 16),
+                Text('Notifications', style: Theme.of(context).textTheme.headlineSmall),
+                allNotificationsTile(),
+              ],
+            ),
           ),
         );
       },

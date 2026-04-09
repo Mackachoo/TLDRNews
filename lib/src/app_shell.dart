@@ -46,17 +46,25 @@ class AppShell extends StatelessWidget {
         icon: Image.asset('assets/logos/tldr-white.png', height: double.infinity),
       ),
       title: Text(title),
+      actionsPadding: .zero,
       actions: [
-        if (route == '/settings')
-          IconButton(
-            icon: PhosphorIcon(PhosphorIcons.arrowLeft(PhosphorIconsStyle.bold)),
-            onPressed: () => context.pop(),
-          )
-        else
-          IconButton(
-            icon: PhosphorIcon(PhosphorIcons.gear(PhosphorIconsStyle.bold)),
-            onPressed: () => context.push('/settings'),
+        SizedBox(
+          height: double.infinity,
+          child: AspectRatio(
+            aspectRatio: 1,
+            child: route == '/settings'
+                ? IconButton(
+                    padding: .zero,
+                    icon: PhosphorIcon(PhosphorIcons.arrowLeft(PhosphorIconsStyle.bold)),
+                    onPressed: () => context.pop(),
+                  )
+                : IconButton(
+                    padding: .zero,
+                    icon: PhosphorIcon(PhosphorIcons.gear(PhosphorIconsStyle.bold)),
+                    onPressed: () => context.push('/settings'),
+                  ),
           ),
+        ),
       ],
     );
   }
