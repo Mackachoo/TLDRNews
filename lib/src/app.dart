@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tldrnews_app/src/app_controller.dart';
-import 'package:tldrnews_app/src/app_shell.dart';
 import 'package:tldrnews_app/src/screens/channels/channel_screen.dart';
 import 'package:tldrnews_app/src/screens/home/home_screen.dart';
 import 'package:tldrnews_app/src/screens/settings/settings_screen.dart';

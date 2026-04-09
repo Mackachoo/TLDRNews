@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:tldrnews_app/src/app.dart';
-import 'package:tldrnews_app/src/app_shell.dart';
+import 'package:tldrnews_app/src/app_scaffold.dart';
 import 'package:tldrnews_app/src/utils/extensions/core.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -9,9 +9,8 @@ class SettingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AppShell(
-      child: ListView(
-        physics: ClampingScrollPhysics(),
+    return AppScaffold(
+      body: ListView(
         children: [
           Text('Settings', style: Theme.of(context).textTheme.headlineMedium),
           themeModeTile(),

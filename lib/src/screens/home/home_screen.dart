@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:tldrnews_app/src/app_shell.dart';
+import 'package:tldrnews_app/src/app_scaffold.dart';
+import 'package:tldrnews_app/src/objects/channel.dart';
 import 'package:tldrnews_app/src/utils/extensions/context.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -7,11 +8,9 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AppShell(
+    return AppScaffold(
       includeNavbar: false,
-      child: Column(
-        spacing: 4,
-        crossAxisAlignment: .start,
+      body: ListView(
         children: [
           Text('Welcome to TLDR News!', style: Theme.of(context).textTheme.headlineMedium),
           Text(
@@ -31,7 +30,7 @@ class HomeScreen extends StatelessWidget {
                   shrinkWrap: true,
                   physics: NeverScrollableScrollPhysics(),
                   crossAxisCount: 2,
-                  children: AppShell.channelButtons(context, null),
+                  children: Channels.buttons(context),
                 ),
               ],
             ),
