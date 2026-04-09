@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:tldrnews_app/src/utils/extensions/core.dart';
 import 'package:tldrnews_app/src/widgets/channel_icon.dart';
 
 class Channel {
@@ -41,4 +42,6 @@ class Channels {
       background: 'assets/backgrounds/podcasts.png',
     ),
   );
+
+  static Channel? byId(String id) => all.firstWhereOrNull((channel) => channel.id == id);
 }

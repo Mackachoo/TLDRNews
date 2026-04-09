@@ -40,7 +40,7 @@ class App extends StatelessWidget {
       //     ErrorScreen(context.locale.error_pageNotFound, errorDesc: state.error.toString()),
       routes: [
         ShellRoute(
-          builder: (context, state, child) => AppShell(state: state, screen: child),
+          builder: (context, state, child) => AppShell(state: state, child: child),
           routes: [
             GoRoute(path: '/', builder: (context, state) => const HomeScreen()),
             GoRoute(path: '/settings', builder: (context, state) => const SettingsScreen()),

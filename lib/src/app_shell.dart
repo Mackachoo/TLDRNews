@@ -2,28 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:tldrnews_app/src/objects/channel.dart';
-import 'package:tldrnews_app/src/screens/screen.dart';
 
 class AppShell extends StatelessWidget {
-  const AppShell({super.key, required this.screen, required this.state});
+  const AppShell({super.key, required this.child, required this.state});
 
-  final Screen screen;
+  final Widget child;
   final GoRouterState state;
 
   @override
   Widget build(BuildContext context) {
     final orientation = MediaQuery.of(context).orientation;
     return Scaffold(
-      appBar: screen.appbar ?? appBar(context),
-      bottomNavigationBar: orientation == .portrait ? screen.navbar ?? navbar(context) : null,
+      appBar: appBar(context),
+      bottomNavigationBar: orientation == .portrait ? navbar(context) : null,
       body: Row(
         children: [
-          if (orientation == .landscape) screen.navbar ?? navbar(context),
+          if (orientation == .landscape) navbar(context),
           Expanded(
             child: Container(
               alignment: .center,
               constraints: BoxConstraints(maxWidth: 800),
-              child: SingleChildScrollView(child: screen),
+              child: SingleChildScrollView(child: child),
             ),
           ),
         ],
@@ -31,12 +30,11 @@ class AppShell extends StatelessWidget {
     );
   }
 
-  static AppBar appBar(
-    BuildContext context, {
-    String title = 'TLDR News',
-    PreferredSizeWidget? bottom,
-  }) {
+  static AppBar appBar(BuildContext context) {
     final route = GoRouterState.of(context).uri.toString();
+    final title = route.contains('/channel/')
+        ? Channels.byId(route.split('/channel/').last)?.name ?? 'TLDR News'
+        : 'TLDR News';
 
     return AppBar(
       leading: IconButton(
@@ -56,7 +54,6 @@ class AppShell extends StatelessWidget {
             onPressed: () => context.push('/settings'),
           ),
       ],
-      bottom: bottom,
     );
   }
 
@@ -64,6 +61,7 @@ class AppShell extends StatelessWidget {
     final orientation = MediaQuery.of(context).orientation;
     final route = GoRouterState.of(context).uri.toString();
     final active = route.contains('/channel/') ? route.split('/channel/').last : null;
+    if (route == '/') return SizedBox.shrink();
 
     return SafeArea(
       child: Container(
