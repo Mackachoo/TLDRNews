@@ -18,6 +18,14 @@ class TLDRTheme {
 
         // Themes for specific widgets
         progressIndicatorTheme: ProgressIndicatorThemeData(year2023: false),
+
+        iconButtonTheme: IconButtonThemeData(
+          style: ButtonStyle(
+            foregroundColor: WidgetStateProperty.all(colourScheme.onSurfaceVariant),
+            shape: WidgetStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.zero)),
+          ),
+        ),
+
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ButtonStyle(
             padding: WidgetStateProperty.all(const EdgeInsets.all(12)),

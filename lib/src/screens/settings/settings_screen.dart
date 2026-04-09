@@ -9,17 +9,24 @@ class SettingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: context.colors.surface,
-      child: ListView(
-        padding: .all(16),
-        children: [
-          Text('Settings', style: Theme.of(context).textTheme.headlineMedium),
-          themeModeTile(),
-          Text('Notifications', style: Theme.of(context).textTheme.headlineSmall),
-          allNotificationsTile(),
-        ],
-      ),
+    return ListenableBuilder(
+      listenable: App.ctlr.settings,
+      builder: (context, child) {
+        return Container(
+          color: context.colors.surface,
+          child: ListView(
+            padding: .all(16),
+            children: [
+              Text('Settings', style: Theme.of(context).textTheme.headlineMedium),
+              SizedBox(height: 8),
+              themeModeTile(),
+              SizedBox(height: 16),
+              Text('Notifications', style: Theme.of(context).textTheme.headlineSmall),
+              allNotificationsTile(),
+            ],
+          ),
+        );
+      },
     );
   }
 

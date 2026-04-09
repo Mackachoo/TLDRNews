@@ -14,7 +14,7 @@ class ChannelIcon extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: color,
-          borderRadius: BorderRadius.circular(4),
+          borderRadius: BorderRadius.circular(0),
           image: background != null
               ? DecorationImage(image: AssetImage(background!), fit: BoxFit.cover)
               : null,

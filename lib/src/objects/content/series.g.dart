@@ -11,9 +11,9 @@ Series _$SeriesFromJson(Map<String, dynamic> json) => Series(
   title: json['title'] as String,
   description: json['description'] as String?,
   imageUrl: json['imageUrl'] as String?,
-  videoIds: (json['videoIds'] as List<dynamic>)
-      .map((e) => e as String)
-      .toList(),
+  videoIds:
+      (json['videoIds'] as List<dynamic>?)?.map((e) => e as String).toList() ??
+      const [],
 );
 
 Map<String, dynamic> _$SeriesToJson(Series instance) => <String, dynamic>{

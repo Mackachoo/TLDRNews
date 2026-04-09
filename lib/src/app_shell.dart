@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:tldrnews_app/src/objects/channel/snippets.dart';
+import 'package:tldrnews_app/src/utils/extensions/context.dart';
 
 class AppShell extends StatelessWidget {
   const AppShell({super.key, required this.child, required this.state});
@@ -37,9 +38,12 @@ class AppShell extends StatelessWidget {
         : 'TLDR News';
 
     return AppBar(
+      backgroundColor: context.colors.secondaryContainer,
+      leadingWidth: 96,
       leading: IconButton(
+        padding: .symmetric(horizontal: 8, vertical: 0),
         onPressed: () => context.go('/'),
-        icon: Image.asset('assets/logos/tldr-white.png'),
+        icon: Image.asset('assets/logos/tldr-white.png', height: double.infinity),
       ),
       title: Text(title),
       actions: [
@@ -63,15 +67,21 @@ class AppShell extends StatelessWidget {
     final active = route.contains('/channel/') ? route.split('/channel/').last : null;
     if (route == '/') return SizedBox.shrink();
 
-    return SafeArea(
-      child: Container(
-        padding: const EdgeInsets.all(8),
-        width: orientation == .landscape ? 96 : double.infinity,
-        height: orientation == .portrait ? 96 : double.infinity,
-        child: ListView(
-          scrollDirection: orientation == .portrait ? Axis.horizontal : Axis.vertical,
-
-          children: ChannelSnippets.buttons(context, active),
+    return Container(
+      color: context.colors.secondaryFixedDim,
+      child: SafeArea(
+        child: Container(
+          padding: const EdgeInsets.all(8),
+          width: orientation == .landscape ? 96 : double.infinity,
+          height: orientation == .portrait ? 96 : double.infinity,
+          child: ListView.separated(
+            scrollDirection: orientation == .portrait ? Axis.horizontal : Axis.vertical,
+            separatorBuilder: (context, index) => const SizedBox.square(dimension: 8),
+            itemCount: ChannelSnippets.all.length,
+            itemBuilder: (context, index) {
+              return ChannelSnippets.buttons(context, active)[index];
+            },
+          ),
         ),
       ),
     );

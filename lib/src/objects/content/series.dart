@@ -13,7 +13,7 @@ class Series extends Content {
     required super.title,
     super.description,
     super.imageUrl,
-    required this.videoIds,
+    this.videoIds = const [],
   });
 
   @override

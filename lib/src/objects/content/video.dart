@@ -6,14 +6,14 @@ part 'video.g.dart';
 @JsonSerializable()
 class Video extends Content {
   @JsonKey(includeToJson: false)
-  String videoUrl;
+  String? videoUrl;
 
   Video({
     required super.id,
     required super.title,
     super.description,
     super.imageUrl,
-    required this.videoUrl,
+    this.videoUrl,
   });
 
   @override

@@ -11,7 +11,7 @@ Video _$VideoFromJson(Map<String, dynamic> json) => Video(
   title: json['title'] as String,
   description: json['description'] as String?,
   imageUrl: json['imageUrl'] as String?,
-  videoUrl: json['videoUrl'] as String,
+  videoUrl: json['videoUrl'] as String?,
 );
 
 Map<String, dynamic> _$VideoToJson(Video instance) => <String, dynamic>{
