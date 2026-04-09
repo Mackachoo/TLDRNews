@@ -29,4 +29,40 @@ class ChannelIcon extends StatelessWidget {
       ),
     );
   }
+
+  // * Constructors --------------------------------
+
+  factory ChannelIcon.fromId(String id) {
+    switch (id) {
+      case 'uk':
+        return ChannelIcon.uk();
+      case 'global':
+        return ChannelIcon.global();
+      case 'eu':
+        return ChannelIcon.eu();
+      case 'business':
+        return ChannelIcon.business();
+      case 'podcasts':
+        return ChannelIcon.podcasts();
+      case 'party':
+        return ChannelIcon.party();
+      default:
+        throw ArgumentError('Unknown channel id: $id');
+    }
+  }
+
+  factory ChannelIcon.uk() =>
+      ChannelIcon(icon: 'assets/logos/tldr-uk.png', color: Color(0xFF4EA4AC));
+  factory ChannelIcon.global() =>
+      ChannelIcon(icon: 'assets/logos/tldr-global.png', color: Color(0xFF5C7AE7));
+  factory ChannelIcon.eu() =>
+      ChannelIcon(icon: 'assets/logos/tldr-eu.png', color: Color(0xFF1E4C94));
+  factory ChannelIcon.business() =>
+      ChannelIcon(icon: 'assets/logos/tldr-white.png', color: Color(0xFF4EB17D));
+  factory ChannelIcon.party() =>
+      ChannelIcon(icon: 'assets/logos/tldr-party.png', color: Color(0xFFE1E5EA));
+  factory ChannelIcon.podcasts() => ChannelIcon(
+    icon: 'assets/logos/tldr-white.png',
+    background: 'assets/backgrounds/podcasts.png',
+  );
 }

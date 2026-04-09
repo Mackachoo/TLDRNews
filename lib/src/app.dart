@@ -45,7 +45,7 @@ class App extends StatelessWidget {
             GoRoute(path: '/settings', builder: (context, state) => const SettingsScreen()),
             GoRoute(
               path: '/channel/:id',
-              builder: (context, state) => ChannelScreen(channel: state.pathParameters['id']!),
+              builder: (context, state) => ChannelScreen(channelId: state.pathParameters['id']!),
             ),
           ],
         ),

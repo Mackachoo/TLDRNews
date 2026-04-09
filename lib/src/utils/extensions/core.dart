@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:go_router/go_router.dart';
 
+typedef Json = Map<String, dynamic>;
+
 //* General Extensions -----------------------------------
 
 extension RouterExtension on GoRouter {

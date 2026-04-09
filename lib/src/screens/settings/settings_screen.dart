@@ -17,8 +17,17 @@ class SettingsScreen extends StatelessWidget {
           Text('Settings', style: Theme.of(context).textTheme.headlineMedium),
           themeModeTile(),
           Text('Notifications', style: Theme.of(context).textTheme.headlineSmall),
+          allNotificationsTile(),
         ],
       ),
+    );
+  }
+
+  SwitchListTile allNotificationsTile() {
+    return SwitchListTile(
+      title: Text('Enable Notifications'),
+      value: App.ctlr.settings.notifications.all,
+      onChanged: (value) => App.ctlr.settings.notifications.all = value,
     );
   }
 

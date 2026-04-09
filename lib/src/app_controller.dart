@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:tldrnews_app/src/objects/channel/snippets.dart';
 import 'package:tldrnews_app/src/screens/channels/channel_controller.dart';
 import 'package:tldrnews_app/src/screens/settings/settings_controller.dart';
 
@@ -15,7 +16,10 @@ class AppCtlr with ChangeNotifier {
   // late final AuthController auth = AuthController();
   // late final HomeController home = HomeController();
   late final SettingsController settings = SettingsController();
-  late final List<ChannelController> channels = [];
+
+  late final Map<String, ChannelController> channels = {};
+  ChannelController channel(ChannelSnippet snippet) =>
+      channels.putIfAbsent(snippet.id, () => ChannelController(snippet));
 
   //* System-Wide Shortcuts ----------------------------------
 

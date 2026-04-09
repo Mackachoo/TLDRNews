@@ -4,6 +4,7 @@
 part of 'settings_controller.dart';
 
 mixin SettingsLogic on ChangeNotifier {
+
   final AppearanceSettingsController _appearance = AppearanceSettingsController();
   final NotificationsSettingsController _notifications = NotificationsSettingsController();
 
@@ -27,7 +28,6 @@ mixin SettingsLogic on ChangeNotifier {
     super.dispose();
   }
 }
-
 class AppearanceSettingsController with ChangeNotifier {
   AppearanceSettingsController();
 
@@ -49,6 +49,7 @@ class AppearanceSettingsController with ChangeNotifier {
       LocalService.setThemeMode('appearance_theme', newValue);
     }
   }
+
 }
 
 class NotificationsSettingsController with ChangeNotifier {
@@ -72,4 +73,6 @@ class NotificationsSettingsController with ChangeNotifier {
       LocalService.setBool('notifications_all', newValue);
     }
   }
+
 }
+

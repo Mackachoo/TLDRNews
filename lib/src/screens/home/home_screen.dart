@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:tldrnews_app/src/app_shell.dart';
+import 'package:tldrnews_app/src/objects/channel/snippets.dart';
 import 'package:tldrnews_app/src/utils/extensions/context.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -30,7 +30,7 @@ class HomeScreen extends StatelessWidget {
                   shrinkWrap: true,
                   physics: NeverScrollableScrollPhysics(),
                   crossAxisCount: 2,
-                  children: AppShell.channelButtons(context, null),
+                  children: ChannelSnippets.buttons(context, null),
                 ),
               ],
             ),

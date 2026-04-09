@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import 'package:tldrnews_app/src/objects/channel.dart';
+import 'package:tldrnews_app/src/objects/channel/snippets.dart';
 
 class AppShell extends StatelessWidget {
   const AppShell({super.key, required this.child, required this.state});
@@ -33,7 +33,7 @@ class AppShell extends StatelessWidget {
   static AppBar appBar(BuildContext context) {
     final route = GoRouterState.of(context).uri.toString();
     final title = route.contains('/channel/')
-        ? Channels.byId(route.split('/channel/').last)?.name ?? 'TLDR News'
+        ? ChannelSnippets.byId(route.split('/channel/').last)?.name ?? 'TLDR News'
         : 'TLDR News';
 
     return AppBar(
@@ -71,52 +71,9 @@ class AppShell extends StatelessWidget {
         child: ListView(
           scrollDirection: orientation == .portrait ? Axis.horizontal : Axis.vertical,
 
-          children: channelButtons(context, active),
+          children: ChannelSnippets.buttons(context, active),
         ),
       ),
     );
-  }
-
-  static List<IconButton> channelButtons(BuildContext context, String? active) {
-    final channels = Channels.all;
-    return channels
-        .map(
-          (c) => IconButton(
-            padding: .symmetric(horizontal: 3),
-            onPressed: () => context.pushReplacement('/channel/${c.id}'),
-            icon: desaturate(c, active == null || active == c.id),
-          ),
-        )
-        .toList();
-  }
-
-  static Widget desaturate(Channel channel, bool active) {
-    return active
-        ? channel.icon
-        : ColorFiltered(
-            colorFilter: ColorFilter.matrix([
-              0.2126,
-              0.7152,
-              0.0722,
-              0,
-              0,
-              0.2126,
-              0.7152,
-              0.0722,
-              0,
-              0,
-              0.2126,
-              0.7152,
-              0.0722,
-              0,
-              0,
-              0,
-              0,
-              0,
-              1,
-              0,
-            ]),
-            child: channel.icon,
-          );
   }
 }
