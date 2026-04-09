@@ -7,5 +7,5 @@ void main() {
   WidgetsFlutterBinding.ensureInitialized();
   Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  runApp(TLDRNewsApp());
+  runApp(App());
 }

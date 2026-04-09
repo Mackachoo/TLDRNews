@@ -24,7 +24,7 @@ dependencies:
   firebase_app_check: ^0.4.2
 
   # UX
-  cupertino_icons: ^1.0.8
+  phosphor_flutter: ^2.1.0
 
 dev_dependencies:
   flutter_test:
@@ -39,7 +39,8 @@ flutter:
   uses-material-design: true
   generate: true
   assets:
-    - assets/
+    - assets/backgrounds/
+    - assets/logos/
   fonts:
     - family: Assistant
       fonts:

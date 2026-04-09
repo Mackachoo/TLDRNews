@@ -18,6 +18,29 @@ class TLDRTheme {
 
         // Themes for specific widgets
         progressIndicatorTheme: ProgressIndicatorThemeData(year2023: false),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ButtonStyle(
+            padding: WidgetStateProperty.all(const EdgeInsets.all(12)),
+            foregroundColor: WidgetStateProperty.all(colourScheme.onPrimary),
+            backgroundColor: WidgetStateProperty.all(colourScheme.primary),
+            textStyle: WidgetStateProperty.all(textTheme.titleMedium),
+            shape: WidgetStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.zero)),
+          ),
+        ),
+
+        menuTheme: MenuThemeData(
+          style: MenuStyle(
+            backgroundColor: WidgetStateProperty.all(colourScheme.primaryContainer),
+            shape: WidgetStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.zero)),
+          ),
+        ),
+        menuButtonTheme: MenuButtonThemeData(
+          style: ButtonStyle(
+            foregroundColor: WidgetStateProperty.all(colourScheme.onPrimaryContainer),
+            textStyle: WidgetStateProperty.all(textTheme.titleMedium),
+            shape: WidgetStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.zero)),
+          ),
+        ),
       );
   // * Text Themes -------------------------------------------------
 

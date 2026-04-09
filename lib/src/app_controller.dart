@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:tldrnews_app/src/screens/channels/channel_controller.dart';
 import 'package:tldrnews_app/src/screens/settings/settings_controller.dart';
 
 class AppCtlr with ChangeNotifier {
@@ -14,6 +15,7 @@ class AppCtlr with ChangeNotifier {
   // late final AuthController auth = AuthController();
   // late final HomeController home = HomeController();
   late final SettingsController settings = SettingsController();
+  late final List<ChannelController> channels = [];
 
   //* System-Wide Shortcuts ----------------------------------
 
