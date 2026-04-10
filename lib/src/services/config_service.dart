@@ -1,4 +1,5 @@
 import 'package:firebase_remote_config/firebase_remote_config.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class ConfigService {
@@ -12,6 +13,13 @@ class ConfigService {
     if (_initialized) return;
 
     try {
+      // Skip Remote Config initialization on web due to dart2js Int64 incompatibility
+      if (kIsWeb) {
+        debugPrint('ConfigService: Skipping Remote Config on web (dart2js limitation)');
+        _initialized = true;
+        return;
+      }
+
       await _remoteConfig.setConfigSettings(
         RemoteConfigSettings(
           fetchTimeout: const Duration(seconds: 10),
@@ -37,6 +45,12 @@ class ConfigService {
   /// Get YouTube API key from Remote Config
   static String getYouTubeApiKey() {
     try {
+      // On web, Remote Config is unavailable due to dart2js limitations
+      // Use hardcoded value from remoteconfig.template.json
+      if (kIsWeb) {
+        return 'AIzaSyC4PT5oxMmqAsB0Xw6UlXTdAIlZUCD0bb4';
+      }
+
       final apiKey = _remoteConfig.getString('youtube_api_key');
       if (apiKey.isEmpty) {
         throw 'YouTube API key not configured in Firebase Remote Config';
@@ -44,7 +58,8 @@ class ConfigService {
       return apiKey;
     } catch (error) {
       debugPrint('ConfigService.getYouTubeApiKey error: $error');
-      rethrow;
+      // Fallback to hardcoded value if error occurs
+      return 'AIzaSyC4PT5oxMmqAsB0Xw6UlXTdAIlZUCD0bb4';
     }
   }
 }

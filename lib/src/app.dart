@@ -41,6 +41,10 @@ class App extends StatelessWidget {
   static GoRouter router() {
     return GoRouter(
       initialLocation: '/',
+      redirect: (context, state) {
+        if (state.uri.path.startsWith('/admin') && ctlr.auth.meta?.admin != true) return '/';
+        return null;
+      },
       errorBuilder: (context, state) => ErrorScreen(state.error),
       routes: [
         ShellRoute(
