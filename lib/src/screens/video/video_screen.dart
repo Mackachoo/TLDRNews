@@ -6,6 +6,10 @@ import 'package:tldrnews_app/src/objects/content/video.dart';
 import 'package:video_player/video_player.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart' as yt;
 
+// Web-only imports - these will only be used on web platform
+import 'dart:ui_web' as ui_web;
+import 'dart:html' as html;
+
 class VideoScreen extends StatefulWidget {
   const VideoScreen(this.videoId, {super.key});
 
@@ -23,6 +27,7 @@ class _VideoScreenState extends State<VideoScreen> {
   bool _isInitialized = false;
   Video? _video;
   String? _errorMessage;
+  String? _youtubeVideoId;
 
   @override
   void initState() {
@@ -69,8 +74,10 @@ class _VideoScreenState extends State<VideoScreen> {
         flags: const yt.YoutubePlayerFlags(autoPlay: true, mute: false),
       );
     } else if (videoId != null && kIsWeb) {
-      // YouTube URL on web - mark as YouTube (will show link in UI)
+      // YouTube URL on web - register iframe platform view
       _isYoutubeVideo = true;
+      _youtubeVideoId = videoId;
+      _registerYoutubeIframeWeb(videoId);
     } else {
       // Assume it's a direct video URL
       _videoPlayerController = VideoPlayerController.networkUrl(Uri.parse(url));
@@ -88,6 +95,25 @@ class _VideoScreenState extends State<VideoScreen> {
       setState(() {
         _isInitialized = true;
       });
+    }
+  }
+
+  void _registerYoutubeIframeWeb(String videoId) {
+    if (!kIsWeb) return;
+
+    try {
+      ui_web.platformViewRegistry.registerViewFactory('youtube-iframe-$videoId', (int viewId) {
+        // Create iframe element
+        final iframe = html.IFrameElement()
+          ..src = 'https://www.youtube.com/embed/$videoId?autoplay=1&controls=1'
+          ..style.border = 'none'
+          ..style.width = '100%'
+          ..style.height = '100%'
+          ..setAttribute('allow', 'autoplay');
+        return iframe;
+      });
+    } catch (e) {
+      debugPrint('Error registering YouTube iframe: $e');
     }
   }
 
@@ -128,8 +154,11 @@ class _VideoScreenState extends State<VideoScreen> {
           children: [
             if (_isYoutubeVideo && !kIsWeb)
               yt.YoutubePlayer(controller: _youtubeController, showVideoProgressIndicator: true)
-            else if (_isYoutubeVideo && kIsWeb)
-              _buildWebYoutubePlayer()
+            else if (_isYoutubeVideo && kIsWeb && _youtubeVideoId != null)
+              AspectRatio(
+                aspectRatio: 16 / 9,
+                child: HtmlElementView(viewType: 'youtube-iframe-$_youtubeVideoId'),
+              )
             else if (_chewieController != null)
               Chewie(controller: _chewieController!),
             Padding(
@@ -144,44 +173,6 @@ class _VideoScreenState extends State<VideoScreen> {
                   ],
                 ],
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildWebYoutubePlayer() {
-    final videoId = yt.YoutubePlayer.convertUrlToId(_video!.youtubeUrl);
-    if (videoId == null) {
-      return const SizedBox(
-        height: 300,
-        child: Center(child: Text('Invalid YouTube URL')),
-      );
-    }
-
-    // On web, provide a direct link to YouTube
-    return Container(
-      height: 300,
-      color: Colors.grey[900],
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text(
-              'YouTube Video',
-              style: TextStyle(color: Colors.white),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                // Open YouTube in new tab/window
-                final url = _video!.youtubeUrl;
-                // For web, you could use 'dart:html' to open the URL
-                // For now, just show the URL
-                debugPrint('YouTube URL: $url');
-              },
-              child: const Text('Open on YouTube'),
             ),
           ],
         ),
