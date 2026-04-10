@@ -19,6 +19,8 @@ class TLDRTheme {
         // Themes for specific widgets
         progressIndicatorTheme: ProgressIndicatorThemeData(year2023: false),
 
+        cardTheme: CardThemeData(shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero)),
+
         iconButtonTheme: IconButtonThemeData(
           style: ButtonStyle(
             foregroundColor: WidgetStateProperty.all(colourScheme.onSurfaceVariant),

@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:tldrnews_app/src/objects/channel/channel.dart';
+import 'package:tldrnews_app/src/objects/content/series.dart';
+import 'package:tldrnews_app/src/objects/content/video.dart';
 import 'package:tldrnews_app/src/services/firestore/_firestore_core.dart';
 import 'package:tldrnews_app/src/utils/extensions/core.dart';
 
@@ -18,8 +20,45 @@ class ChannelService extends FirestoreCore {
         if (!channelDoc.exists) throw 'Channel not found';
 
         final data = channelDoc.data() as Json;
-        data['id'] = channelDoc.id;
-        channel = Channel.fromJson(data);
+
+        // Manually deserialize videos with error handling
+        final Map<String, Video> videos = {};
+        if (data['videos'] is Map) {
+          for (final entry in (data['videos'] as Map).entries) {
+            try {
+              final videoJson = Map<String, dynamic>.from(entry.value as Map);
+              videoJson['id'] = entry.key;
+              videos[entry.key] = Video.fromJson(videoJson);
+            } catch (e) {
+              debugPrint('ChannelService.retrieve: Skipping malformed video ${entry.key}: $e');
+            }
+          }
+        }
+
+        // Manually deserialize series with error handling
+        final Map<String, Series> series = {};
+        if (data['series'] is Map) {
+          for (final entry in (data['series'] as Map).entries) {
+            try {
+              final seriesJson = Map<String, dynamic>.from(entry.value as Map);
+              seriesJson['id'] = entry.key;
+              series[entry.key] = Series.fromJson(seriesJson);
+            } catch (e) {
+              debugPrint('ChannelService.retrieve: Skipping malformed series ${entry.key}: $e');
+            }
+          }
+        }
+
+        // Construct Channel directly without going through fromJson to avoid double deserialization
+        channel = Channel(
+          id: cid,
+          name: data['name'] as String? ?? 'Unknown',
+          channelUrl: data['channelUrl'] as String? ?? '',
+          description: data['description'] as String?,
+          videos: videos,
+          series: series,
+        );
+
         insertCached<Channel>(cid, channel);
       }
       return channel;

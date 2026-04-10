@@ -16,6 +16,8 @@ class Video extends Content {
     this.videoUrl,
   });
 
+  String get youtubeUrl => videoUrl ?? 'https://www.youtube.com/watch?v=$id';
+
   @override
   Map<String, dynamic> toJson() => _$VideoToJson(this);
   factory Video.fromJson(Map<String, dynamic> json) => _$VideoFromJson(json);

@@ -24,5 +24,11 @@ class Channel extends ChannelSnippet {
   final Map<String, Series> series;
 
   factory Channel.fromJson(Map<String, dynamic> json) => _$ChannelFromJson(json);
-  Map<String, dynamic> toJson() => _$ChannelToJson(this);
+
+  Map<String, dynamic> toJson() {
+    final json = _$ChannelToJson(this);
+    json['videos'] = videos.map((k, v) => MapEntry(k, v.toJson()));
+    json['series'] = series.map((k, v) => MapEntry(k, v.toJson()));
+    return json;
+  }
 }

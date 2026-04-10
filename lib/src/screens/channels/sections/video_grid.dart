@@ -9,17 +9,15 @@ class VideoGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    return GridView.count(
       padding: .all(16),
-      child: GridView.count(
-        shrinkWrap: true,
-        physics: NeverScrollableScrollPhysics(),
-        crossAxisCount: (MediaQuery.of(context).size.width / 200).floor().clamp(1, 4),
+      shrinkWrap: true,
+      // physics: NeverScrollableScrollPhysics(),
+      crossAxisCount: (MediaQuery.of(context).size.width / 200).floor().clamp(1, 4),
 
-        mainAxisSpacing: 16,
-        crossAxisSpacing: 16,
-        children: ctlr.channel!.videos.entries.map((entry) => VideoWidget(entry.value)).toList(),
-      ),
+      mainAxisSpacing: 16,
+      crossAxisSpacing: 16,
+      children: ctlr.channel!.videos.entries.map((entry) => VideoWidget(entry.value)).toList(),
     );
   }
 }

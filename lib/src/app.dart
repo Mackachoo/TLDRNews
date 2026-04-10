@@ -10,6 +10,7 @@ import 'package:tldrnews_app/src/screens/channels/channel_screen.dart';
 import 'package:tldrnews_app/src/screens/error/error_screen.dart';
 import 'package:tldrnews_app/src/screens/home/home_screen.dart';
 import 'package:tldrnews_app/src/screens/settings/settings_screen.dart';
+import 'package:tldrnews_app/src/screens/video/video_screen.dart';
 import 'package:tldrnews_app/src/utils/theme.dart';
 
 class App extends StatelessWidget {
@@ -49,6 +50,14 @@ class App extends StatelessWidget {
             GoRoute(path: '/settings', builder: (context, state) => const SettingsScreen()),
             GoRoute(path: '/account', builder: (context, state) => const AuthScreen()),
             GoRoute(
+              path: '/channel/:id',
+              builder: (context, state) => ChannelScreen(cid: state.pathParameters['id']!),
+            ),
+            GoRoute(
+              path: '/video/:id',
+              builder: (context, state) => VideoScreen(state.pathParameters['id']!),
+            ),
+            GoRoute(
               path: '/admin',
               builder: (context, state) => const AdminScreen(),
               routes: [
@@ -58,10 +67,6 @@ class App extends StatelessWidget {
                   builder: (context, state) => AdminChannelScreen(cid: state.pathParameters['id']!),
                 ),
               ],
-            ),
-            GoRoute(
-              path: '/channel/:id',
-              builder: (context, state) => ChannelScreen(cid: state.pathParameters['id']!),
             ),
           ],
         ),
