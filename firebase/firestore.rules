@@ -15,12 +15,18 @@ service cloud.firestore {
       allow read, write: if isAuthenticated() && request.auth.uid == uid;
     }
 
-    // Channels collection - Public can read all but only admins can write
-    match /channels/{aid} {
-      allow read:   if true;
+    // Meta collection - Authenticated can read all but not write
+    match /meta/{uid} {
+      allow read:   if isAuthenticated();
       allow write:  if false;
     }
 
+    // Channels collection - Public can read all but only admins can write
+    match /channels/{cid} {
+      allow read:   if true;
+      allow write:  if false;
+    }
+    
     //* Helper Functions --------------------------------------------
 
     function isAuthenticated() {

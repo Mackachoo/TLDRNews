@@ -7,10 +7,10 @@ import 'package:tldrnews_app/src/screens/channels/sections/video_grid.dart';
 import 'package:tldrnews_app/src/utils/extensions/context.dart';
 
 class ChannelScreen extends StatelessWidget {
-  const ChannelScreen({super.key, required this.channelId});
+  const ChannelScreen({super.key, required this.cid});
 
-  final String channelId;
-  ChannelSnippet? get snippet => ChannelSnippets.byId(channelId);
+  final String cid;
+  ChannelSnippet? get snippet => ChannelSnippets.byId(cid);
 
   @override
   Widget build(BuildContext context) {

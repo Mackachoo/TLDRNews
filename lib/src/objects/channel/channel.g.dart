@@ -9,7 +9,8 @@ part of 'channel.dart';
 Channel _$ChannelFromJson(Map<String, dynamic> json) => Channel(
   id: json['id'] as String,
   name: json['name'] as String,
-  description: json['description'] as String,
+  channelUrl: json['channelUrl'] as String,
+  description: json['description'] as String?,
   videos: (json['videos'] as Map<String, dynamic>?)?.map(
     (k, e) => MapEntry(k, Video.fromJson(e as Map<String, dynamic>)),
   ),
@@ -20,6 +21,7 @@ Channel _$ChannelFromJson(Map<String, dynamic> json) => Channel(
 
 Map<String, dynamic> _$ChannelToJson(Channel instance) => <String, dynamic>{
   'name': instance.name,
+  'channelUrl': instance.channelUrl,
   'description': instance.description,
   'videos': instance.videos,
   'series': instance.series,

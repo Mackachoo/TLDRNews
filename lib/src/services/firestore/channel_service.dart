@@ -10,17 +10,17 @@ class ChannelService extends FirestoreCore {
 
   //* CRUD -------------------------------------------------------------
 
-  Future<Channel?> retrieve(String channelId, {bool useCache = true}) async {
+  Future<Channel?> retrieve(String cid, {bool useCache = true}) async {
     try {
-      Channel? channel = useCache ? checkCached<Channel>(channelId) : null;
+      Channel? channel = useCache ? checkCached<Channel>(cid) : null;
       if (channel == null) {
-        DocumentSnapshot channelDoc = await channels.doc(channelId).get();
+        DocumentSnapshot channelDoc = await channels.doc(cid).get();
         if (!channelDoc.exists) throw 'Channel not found';
 
         final data = channelDoc.data() as Json;
         data['id'] = channelDoc.id;
         channel = Channel.fromJson(data);
-        insertCached<Channel>(channelId, channel);
+        insertCached<Channel>(cid, channel);
       }
       return channel;
     } catch (error) {

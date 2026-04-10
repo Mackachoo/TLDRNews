@@ -1,9 +1,9 @@
-import 'package:flutter/material.dart';
 import 'package:tldrnews_app/src/objects/channel/snippets.dart';
+import 'package:tldrnews_app/src/screens/auth/auth_controller.dart';
 import 'package:tldrnews_app/src/screens/channels/channel_controller.dart';
 import 'package:tldrnews_app/src/screens/settings/settings_controller.dart';
 
-class AppCtlr with ChangeNotifier {
+class AppCtlr {
   static final AppCtlr _instance = AppCtlr._internal();
   factory AppCtlr() => _instance;
   AppCtlr._internal() {
@@ -13,8 +13,7 @@ class AppCtlr with ChangeNotifier {
 
   //* System-Wide Controllers -------------------------
 
-  // late final AuthController auth = AuthController();
-  // late final HomeController home = HomeController();
+  late final AccountController auth = AccountController();
   late final SettingsController settings = SettingsController();
 
   late final Map<String, ChannelController> channels = {};

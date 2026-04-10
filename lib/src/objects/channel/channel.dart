@@ -10,13 +10,15 @@ class Channel extends ChannelSnippet {
   Channel({
     required super.id,
     required super.name,
-    required this.description,
+    required this.channelUrl,
+    this.description,
     Map<String, Video>? videos,
     Map<String, Series>? series,
   }) : videos = videos ?? {},
        series = series ?? {};
 
-  final String description;
+  final String channelUrl;
+  final String? description;
 
   final Map<String, Video> videos;
   final Map<String, Series> series;

@@ -5,8 +5,9 @@ class FirestoreCore {
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
   @protected
+  CollectionReference get meta => firestore.collection('meta');
+  @protected
   CollectionReference get accounts => firestore.collection('accounts');
-
   @protected
   CollectionReference get channels => firestore.collection('channels');
 
