@@ -1,10 +1,7 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:tldrnews_app/src/app.dart';
 import 'package:tldrnews_app/src/objects/content/youtube_video.dart';
-import 'package:tldrnews_app/src/widgets/video_player/app_video_player.dart';
-import 'package:tldrnews_app/src/widgets/video_player/web_video_player.dart';
-import 'package:tldrnews_app/src/widgets/video_player/youtube_player.dart';
+import 'package:tldrnews_app/src/widgets/video_players/youtube_player.dart';
 
 class VideoScreen extends StatelessWidget {
   const VideoScreen(this.videoId, {super.key});
@@ -35,7 +32,6 @@ class VideoScreen extends StatelessWidget {
             child: Column(
               children: [
                 YoutubeVideoPlayer(video),
-                // if (kIsWeb) WebVideoPlayer(video) else AppVideoPlayer(video),
                 Card(
                   margin: .only(top: 16),
                   child: Padding(

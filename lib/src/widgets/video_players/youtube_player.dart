@@ -9,10 +9,10 @@ class YoutubeVideoPlayer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final _controller = YoutubePlayerController.fromVideoId(
+    final ctlr = YoutubePlayerController.fromVideoId(
       videoId: video.id,
       params: YoutubePlayerParams(mute: false, showControls: true, showFullscreenButton: true),
     );
-    return YoutubePlayer(controller: _controller, aspectRatio: 16 / 9);
+    return YoutubePlayer(controller: ctlr, aspectRatio: 16 / 9);
   }
 }
