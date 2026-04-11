@@ -13,8 +13,12 @@ class YouTubeService {
 
   /// Fetches videos and playlists from a YouTube channel URL
   /// Parses channel URL to extract channel ID (supports @handle and /channel/ID formats)
+  /// [excludeVideoIds] - Set of video IDs to exclude (useful for incremental updates)
   /// Returns a map with 'videos' and 'series' (playlists) keys
-  static Future<Map<String, dynamic>> fetchChannelContent(String channelUrl) async {
+  static Future<Map<String, dynamic>> fetchChannelContent(
+    String channelUrl, {
+    Set<String> excludeVideoIds = const {},
+  }) async {
     try {
       debugPrint('YouTubeService.fetchChannelContent: Fetching for URL: $channelUrl');
 
@@ -64,7 +68,7 @@ class YouTubeService {
 
       // Fetch videos from uploads playlist
       debugPrint('YouTubeService.fetchChannelContent: Fetching videos from playlist');
-      final videos = await _fetchPlaylistVideos(uploadsPlaylistId);
+      final videos = await _fetchPlaylistVideos(uploadsPlaylistId, excludeIds: excludeVideoIds);
       debugPrint('YouTubeService.fetchChannelContent: Fetched ${videos.length} videos');
 
       // Fetch all playlists from the channel
@@ -179,18 +183,25 @@ class YouTubeService {
     }
   }
 
-  /// Fetches all videos from a playlist
-  /// Returns a list of Video objects
+  /// Fetches videos from a playlist, sorted by most recent first
+  /// [maxResults] - Number of most recent videos to return
+  /// [excludeIds] - Set of video IDs to exclude (useful for incremental updates)
+  /// Returns a list of Video objects sorted by published date (newest first)
   static Future<List<YoutubeVideo>> _fetchPlaylistVideos(
     String playlistId, {
     int maxResults = 50,
+    Set<String> excludeIds = const {},
   }) async {
     try {
       final videos = <YoutubeVideo>[];
       String? pageToken;
+
+      // Fetch all videos from the playlist (or at least enough to get maxResults after filtering)
+      // We fetch more than needed to account for excluded IDs
+      int targetFetch = maxResults * 2; // Fetch 2x to account for exclusions
       int totalFetched = 0;
 
-      while (totalFetched < maxResults) {
+      while (totalFetched < targetFetch) {
         final uri = Uri.parse(
           '$_baseUrl/playlistItems?part=snippet&playlistId=$playlistId&maxResults=50&pageToken=${pageToken ?? ''}&key=${_getApiKey()}',
         );
@@ -204,22 +215,25 @@ class YouTubeService {
         final data = jsonDecode(response.body);
         final items = data['items'] ?? [];
 
-        for (final item in items) {
-          if (totalFetched >= maxResults) break;
+        if (items.isEmpty) break;
 
+        for (final item in items) {
           final snippet = item['snippet'];
           final videoId = snippet?['resourceId']?['videoId'];
 
-          if (videoId != null) {
+          if (videoId != null && !excludeIds.contains(videoId)) {
             final video = YoutubeVideo(
               id: videoId,
               title: snippet?['title'] ?? 'Untitled',
+              published: DateTime.tryParse(snippet?['publishedAt']),
               description: snippet?['description'],
               imageUrl: snippet?['thumbnails']?['high']?['url'],
               overrideUrl: 'https://www.youtube.com/watch?v=$videoId',
             );
             videos.add(video);
             totalFetched++;
+
+            if (totalFetched >= targetFetch) break;
           }
         }
 
@@ -227,7 +241,14 @@ class YouTubeService {
         if (pageToken == null) break;
       }
 
-      return videos;
+      // Sort by published date (most recent first)
+      videos.sort((a, b) {
+        if (a.published == null || b.published == null) return 0;
+        return b.published!.compareTo(a.published!); // Descending order (newest first)
+      });
+
+      // Return only the requested number
+      return videos.take(maxResults).toList();
     } catch (error) {
       debugPrint('YouTubeService._fetchPlaylistVideos error: $error');
       rethrow;

@@ -13,6 +13,6 @@ class Message {
   static void snackbar(BuildContext context, {required String message, Color? color}) {
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(SnackBar(backgroundColor: color, content: Text(message)));
+    ).showSnackBar(SnackBar(backgroundColor: color, content: SelectableText(message)));
   }
 }

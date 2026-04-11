@@ -41,7 +41,6 @@ class AdminChannelController extends ChangeNotifier {
   Future<void> fetchChannelConntentFromYoutube(BuildContext context) async {
     if (channel == null) {
       if (context.mounted) Message.error(context, 'Channel data not loaded yet');
-
       return;
     }
 
@@ -57,23 +56,32 @@ class AdminChannelController extends ChangeNotifier {
       isFetching = true;
       notifyListeners();
 
-      // Fetch content from YouTube
+      // Build set of existing video IDs to skip already-downloaded videos
+      final existingVideoIds = channel!.videos.keys.toSet();
+      debugPrint(
+        'AdminChannelController: Found ${existingVideoIds.length} existing videos, fetching new ones',
+      );
+
+      // Fetch content from YouTube, excluding existing IDs
       debugPrint('AdminChannelController: Calling YouTubeService.fetchChannelContent');
-      final result = await YouTubeService.fetchChannelContent(channel!.channelUrl);
+      final result = await YouTubeService.fetchChannelContent(
+        channel!.channelUrl,
+        excludeVideoIds: existingVideoIds,
+      );
 
       final videos = result['videos'] as List? ?? [];
       final series = result['series'] as List? ?? [];
 
       debugPrint(
-        'AdminChannelController: Fetched ${videos.length} videos and ${series.length} playlists',
+        'AdminChannelController: Fetched ${videos.length} new videos and ${series.length} playlists',
       );
 
-      // Update channel object with JSON serialization
-      channel!.videos.clear();
+      // Add new videos to existing ones (most recent first due to YouTube service sorting)
       for (final video in videos) {
         channel!.videos[video.id] = video;
       }
 
+      // Replace series with fresh list
       channel!.series.clear();
       for (final playlist in series) {
         channel!.series[playlist.id] = playlist;
