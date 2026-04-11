@@ -31,7 +31,7 @@ class ChannelSnippets {
         .map(
           (c) => IconButton(
             padding: .zero,
-            onPressed: () => context.pushReplacement('/channel/${c.id}'),
+            onPressed: active != c.id ? () => context.pushReplacement('/channel/${c.id}') : null,
             icon: ColorFiltered(
               colorFilter: ColorFilter.saturation(active == null || active == c.id ? 1 : 0.2),
               child: c.icon,
