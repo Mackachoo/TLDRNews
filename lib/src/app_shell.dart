@@ -50,7 +50,7 @@ class AppShell extends StatelessWidget {
           aspectRatio: 1,
           child: IconButton(
             padding: .symmetric(horizontal: 8, vertical: 0),
-            onPressed: () => showReturn ? context.pop() : context.go('/'),
+            onPressed: () => showReturn ? context.forcePop() : context.go('/'),
             icon: showReturn
                 ? PhosphorIcon(PhosphorIcons.arrowLeft(PhosphorIconsStyle.bold))
                 : Image.asset('assets/logos/tldr-white.png', height: double.infinity),
@@ -98,8 +98,8 @@ class AppShell extends StatelessWidget {
 
   static Widget navbar(BuildContext context) {
     final orientation = MediaQuery.of(context).orientation;
-    final route = GoRouterState.of(context).uri.toString();
-    final active = route.contains('/channel/') ? route.split('/channel/').last : null;
+    final route = context.uri.toString();
+    bool admin = route.startsWith('/admin');
     if (route == '/') return SizedBox.shrink();
 
     return Container(
@@ -109,13 +109,42 @@ class AppShell extends StatelessWidget {
           padding: const EdgeInsets.all(8),
           width: orientation == .landscape ? 96 : double.infinity,
           height: orientation == .portrait ? 96 : double.infinity,
-          child: ListView.separated(
-            scrollDirection: orientation == .portrait ? Axis.horizontal : Axis.vertical,
-            separatorBuilder: (context, index) => const SizedBox.square(dimension: 8),
-            itemCount: ChannelSnippets.all.length,
-            itemBuilder: (context, index) {
-              return ChannelSnippets.buttons(context, active)[index];
-            },
+          child: Column(
+            spacing: 12,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Expanded(
+                child: ListView.separated(
+                  scrollDirection: orientation == .portrait ? Axis.horizontal : Axis.vertical,
+                  separatorBuilder: (context, index) => const SizedBox.square(dimension: 8),
+                  itemCount: ChannelSnippets.all.length,
+                  itemBuilder: (context, index) {
+                    return ChannelSnippets.buttons(
+                      context,
+                      desaturate: true,
+                      onTap: (id) =>
+                          context.pushReplacement('/${admin ? 'admin/channel' : 'channel'}/$id'),
+                    )[index];
+                  },
+                ),
+              ),
+              if (admin)
+                Card(
+                  child: Container(
+                    color: context.colors.primary,
+                    width: double.infinity,
+                    padding: .all(8),
+                    child: Center(
+                      child: Text(
+                        'ADMIN',
+                        style: context.textTheme.labelLarge!.copyWith(
+                          color: context.colors.onPrimary,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
           ),
         ),
       ),

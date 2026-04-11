@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:tldrnews_app/src/utils/extensions/context.dart';
 import 'package:tldrnews_app/src/utils/extensions/core.dart';
 import 'package:tldrnews_app/src/widgets/channel_icon.dart';
 
@@ -12,6 +12,22 @@ class ChannelSnippet {
   ChannelIcon get icon => ChannelIcon.fromId(id);
 
   ChannelSnippet({required this.id, required this.name});
+
+  IconButton button(
+    BuildContext context, {
+    bool desaturate = false,
+    void Function(String id)? onTap,
+  }) {
+    bool active = context.uri.pathSegments.isNotEmpty && context.uri.pathSegments.last == id;
+    return IconButton(
+      padding: .zero,
+      onPressed: !active && onTap != null ? () => onTap(id) : null,
+      icon: ColorFiltered(
+        colorFilter: ColorFilter.saturation(!desaturate || active ? 1 : 0.2),
+        child: icon,
+      ),
+    );
+  }
 }
 
 class ChannelSnippets {
@@ -25,19 +41,11 @@ class ChannelSnippets {
   static ChannelSnippet? byId(String id) => all.firstWhereOrNull((channel) => channel.id == id);
 
   static List<ChannelSnippet> get all => [party, uk, global, eu, business, podcasts];
-  static List<IconButton> buttons(BuildContext context, [String? active]) {
-    final channels = ChannelSnippets.all;
-    return channels
-        .map(
-          (c) => IconButton(
-            padding: .zero,
-            onPressed: active != c.id ? () => context.pushReplacement('/channel/${c.id}') : null,
-            icon: ColorFiltered(
-              colorFilter: ColorFilter.saturation(active == null || active == c.id ? 1 : 0.2),
-              child: c.icon,
-            ),
-          ),
-        )
-        .toList();
-  }
+  static List<IconButton> buttons(
+    BuildContext context, {
+    bool desaturate = false,
+    void Function(String id)? onTap,
+  }) => ChannelSnippets.all
+      .map((c) => c.button(context, desaturate: desaturate, onTap: onTap))
+      .toList();
 }

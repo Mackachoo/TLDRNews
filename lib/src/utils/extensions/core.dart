@@ -8,7 +8,7 @@ typedef Json = Map<String, dynamic>;
 //* General Extensions -----------------------------------
 
 extension RouterExtension on GoRouter {
-  Future<T?> add<T extends Object?>(String added, {Object? extra, String? fallback}) async {
+  Future<T?> add<T extends Object?>(String added, {Object? extra}) async {
     String base = routerDelegate.currentConfiguration.uri.path;
     if (!base.endsWith('/')) base += '/';
     final String location = base + added;
@@ -81,21 +81,11 @@ extension DateTimeExtension on DateTime {
     return names[(weekday - 1) % 7];
   }
 
-  String toUser() {
-    String date = '';
-    if (!isToday()) {
-      if (isYesterday()) {
-        date = ' yesterday';
-      } else {
-        if (daysAgo() < 7) {
-          date = ' $weekdayName';
-        } else {
-          date = ' ${day.toString().padLeft(2, '0')}/${month.toString().padLeft(2, '0')}';
-          if (!isThisYear()) date = '/$year';
-        }
-      }
-    }
-    return '$hour:${minute.toString().padLeft(2, '0')}$date';
+  String toUI() {
+    if (isToday()) return '$hour:${minute.toString().padLeft(2, '0')}';
+    if (isYesterday()) return 'yesterday';
+    if (daysAgo() < 7) return weekdayName;
+    return '${day.toString().padLeft(2, '0')}/${month.toString().padLeft(2, '0')}/$year';
   }
 }
 

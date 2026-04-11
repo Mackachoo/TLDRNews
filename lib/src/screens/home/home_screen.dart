@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:tldrnews_app/src/objects/channel/snippets.dart';
 import 'package:tldrnews_app/src/utils/extensions/context.dart';
 import 'package:tldrnews_app/src/widgets/responsive_grid.dart';
@@ -30,7 +31,10 @@ class HomeScreen extends StatelessWidget {
                 ResponsiveGrid(
                   physics: NeverScrollableScrollPhysics(),
                   minItemWidth: 120,
-                  children: ChannelSnippets.buttons(context, null),
+                  children: ChannelSnippets.buttons(
+                    context,
+                    onTap: (id) => context.go('/channel/$id'),
+                  ),
                 ),
               ],
             ),

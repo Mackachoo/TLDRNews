@@ -28,7 +28,6 @@ class AdminChannelScreen extends StatelessWidget {
                   : Axis.horizontal,
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
-              spacing: 32,
               children: MediaQuery.of(context).orientation == .portrait
                   ? [primary(context, ctlr), secondary(context, ctlr)]
                   : [
@@ -61,7 +60,7 @@ class AdminChannelScreen extends StatelessWidget {
     return ListTile(
       leading: PhosphorIcon(PhosphorIcons.cloudArrowDown()),
       title: const Text('Content Management'),
-      subtitle: const Text('Fetch videos and playlists from YouTube'),
+      subtitle: const Text('Fetch recent videos and playlists from YouTube'),
       trailing: ctlr.isFetching
           ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
           : ElevatedButton.icon(
@@ -88,34 +87,46 @@ class AdminChannelScreen extends StatelessWidget {
 
   Column secondary(BuildContext context, AdminChannelController ctlr) => Column(
     mainAxisSize: MainAxisSize.min,
-    children: ctlr.channel?.videos.values.map((video) => videoCard(context, video)).toList() ?? [],
+    spacing: 8,
+    children:
+        (ctlr.channel?.videos.values.toList()
+              ?..sort((a, b) => b.published!.compareTo(a.published!)))
+            ?.map((video) => videoCard(context, video))
+            .toList() ??
+        [],
   );
 
   Widget videoCard(BuildContext context, YoutubeVideo video) {
     bool expanded = false;
     return StatefulBuilder(
       builder: (context, setState) {
-        return Column(
-          spacing: 4,
-          mainAxisSize: .min,
-          children: [
-            ListTile(
-              leading: video.imageUrl != null
-                  ? Image.network(video.imageUrl!, width: 100, fit: BoxFit.cover)
-                  : null,
-              title: Text(video.title, style: Theme.of(context).textTheme.bodyMedium),
-              trailing: PhosphorIcon(
-                expanded ? PhosphorIcons.caretUp() : PhosphorIcons.caretDown(),
-                size: 16,
+        return Card(
+          elevation: expanded ? 1 : 0,
+          color: expanded ? context.colors.surfaceContainer : context.colors.surface,
+          margin: .zero,
+          child: Column(
+            spacing: 4,
+            mainAxisSize: .min,
+            children: [
+              ListTile(
+                contentPadding: .all(8),
+                leading: video.imageUrl != null
+                    ? Image.network(video.imageUrl!, width: 100, fit: BoxFit.cover)
+                    : null,
+                title: Text(video.title, style: Theme.of(context).textTheme.bodyMedium),
+                trailing: PhosphorIcon(
+                  expanded ? PhosphorIcons.caretUp() : PhosphorIcons.caretDown(),
+                  size: 16,
+                ),
+                onTap: () => setState(() => expanded = !expanded),
               ),
-              onTap: () => setState(() => expanded = !expanded),
-            ),
 
-            if (expanded) ...[
-              const SizedBox(height: 4),
-              Text(video.id, style: Theme.of(context).textTheme.bodySmall),
+              if (expanded) ...[
+                const SizedBox(height: 4),
+                Text(video.id, style: Theme.of(context).textTheme.bodySmall),
+              ],
             ],
-          ],
+          ),
         );
       },
     );

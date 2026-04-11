@@ -11,8 +11,15 @@ class YoutubeVideoPlayer extends StatelessWidget {
   Widget build(BuildContext context) {
     final ctlr = YoutubePlayerController.fromVideoId(
       videoId: video.id,
-      params: YoutubePlayerParams(mute: false, showControls: true, showFullscreenButton: true),
+      params: const YoutubePlayerParams(
+        mute: false,
+        enableCaption: true,
+        showControls: true,
+        showFullscreenButton: true,
+        origin: 'https://www.youtube-nocookie.com',
+      ),
     );
+
     return YoutubePlayer(controller: ctlr, aspectRatio: 16 / 9);
   }
 }

@@ -13,10 +13,9 @@ class AppCtlr {
 
   //* System-Wide Controllers -------------------------
 
-  late final AccountController auth = AccountController();
-  late final SettingsController settings = SettingsController();
-
-  late final Map<String, ChannelController> channels = {};
+  final auth = AccountController();
+  final settings = SettingsController();
+  final channels = <String, ChannelController>{};
   ChannelController channel(ChannelSnippet snippet) =>
       channels.putIfAbsent(snippet.id, () => ChannelController(snippet));
 
