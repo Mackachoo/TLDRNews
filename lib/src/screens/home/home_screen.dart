@@ -31,6 +31,7 @@ class HomeScreen extends StatelessWidget {
                 ResponsiveGrid(
                   physics: NeverScrollableScrollPhysics(),
                   minItemWidth: 120,
+                  maxCrossAxisCount: 6,
                   children: ChannelSnippets.buttons(
                     context,
                     onTap: (id) => context.go('/channel/$id'),

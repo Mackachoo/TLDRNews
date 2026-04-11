@@ -13,11 +13,7 @@ class ChannelSnippet {
 
   ChannelSnippet({required this.id, required this.name});
 
-  IconButton button(
-    BuildContext context, {
-    bool desaturate = false,
-    void Function(String id)? onTap,
-  }) {
+  Widget button(BuildContext context, {bool desaturate = false, void Function(String id)? onTap}) {
     bool active = context.uri.pathSegments.isNotEmpty && context.uri.pathSegments.last == id;
     return IconButton(
       padding: .zero,
@@ -41,7 +37,7 @@ class ChannelSnippets {
   static ChannelSnippet? byId(String id) => all.firstWhereOrNull((channel) => channel.id == id);
 
   static List<ChannelSnippet> get all => [party, uk, global, eu, business, podcasts];
-  static List<IconButton> buttons(
+  static List<Widget> buttons(
     BuildContext context, {
     bool desaturate = false,
     void Function(String id)? onTap,

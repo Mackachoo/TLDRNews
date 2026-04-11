@@ -109,42 +109,18 @@ class AppShell extends StatelessWidget {
           padding: const EdgeInsets.all(8),
           width: orientation == .landscape ? 96 : double.infinity,
           height: orientation == .portrait ? 96 : double.infinity,
-          child: Column(
-            spacing: 12,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Expanded(
-                child: ListView.separated(
-                  scrollDirection: orientation == .portrait ? Axis.horizontal : Axis.vertical,
-                  separatorBuilder: (context, index) => const SizedBox.square(dimension: 8),
-                  itemCount: ChannelSnippets.all.length,
-                  itemBuilder: (context, index) {
-                    return ChannelSnippets.buttons(
-                      context,
-                      desaturate: true,
-                      onTap: (id) =>
-                          context.pushReplacement('/${admin ? 'admin/channel' : 'channel'}/$id'),
-                    )[index];
-                  },
-                ),
-              ),
-              if (admin)
-                Card(
-                  child: Container(
-                    color: context.colors.primary,
-                    width: double.infinity,
-                    padding: .all(8),
-                    child: Center(
-                      child: Text(
-                        'ADMIN',
-                        style: context.textTheme.labelLarge!.copyWith(
-                          color: context.colors.onPrimary,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-            ],
+          child: ListView.separated(
+            scrollDirection: orientation == .portrait ? Axis.horizontal : Axis.vertical,
+            separatorBuilder: (context, index) => const SizedBox.square(dimension: 8),
+            itemCount: ChannelSnippets.all.length,
+            itemBuilder: (context, index) {
+              return ChannelSnippets.buttons(
+                context,
+                desaturate: true,
+                onTap: (id) =>
+                    context.pushReplacement('/${admin ? 'admin/channel' : 'channel'}/$id'),
+              )[index];
+            },
           ),
         ),
       ),

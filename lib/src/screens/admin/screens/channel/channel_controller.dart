@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:tldrnews_app/src/objects/channel/channel.dart';
 import 'package:tldrnews_app/src/objects/channel/snippets.dart';
+import 'package:tldrnews_app/src/objects/content/series.dart';
+import 'package:tldrnews_app/src/objects/content/youtube_video.dart';
 import 'package:tldrnews_app/src/services/firestore_service.dart';
 import 'package:tldrnews_app/src/services/youtube_service.dart';
 import 'package:tldrnews_app/src/utils/message.dart';
@@ -12,10 +14,15 @@ class AdminChannelController extends ChangeNotifier {
   final String cid;
   ChannelSnippet? get snippet => ChannelSnippets.byId(cid);
 
+  Channel? original;
   Channel? channel;
+
+  bool get editted =>
+      channel != null && original != null && channel!.toJson() != original!.toJson();
 
   AdminChannelController(this.cid) {
     FirestoreService.channel.retrieve(cid).then((retrieved) {
+      original = retrieved;
       channel = retrieved;
       loading = false;
       notifyListeners();
@@ -34,6 +41,34 @@ class AdminChannelController extends ChangeNotifier {
 
       notifyListeners();
     }
+  }
+
+  /// Adds a new video to the channel
+  /// If the video already exists by ID, it will be updated
+  Future<void> setVideo(YoutubeVideo video) async {
+    if (channel == null) return;
+    channel!.videos[video.id] = video;
+    notifyListeners();
+  }
+
+  /// Adds a new series (playlist) to the channel
+  /// If the series already exists by ID, it will be replaced
+  Future<void> setSeries(Series newSeries) async {
+    if (channel == null) return;
+    channel!.series[newSeries.id] = newSeries;
+    notifyListeners();
+  }
+
+  Future removeVideo(YoutubeVideo video) async {
+    if (channel == null) return;
+    channel!.videos.remove(video.id);
+    notifyListeners();
+  }
+
+  Future removeSeries(Series series) async {
+    if (channel == null) return;
+    channel!.series.remove(series.id);
+    notifyListeners();
   }
 
   /// Fetches videos and playlists from the channel's YouTube URL

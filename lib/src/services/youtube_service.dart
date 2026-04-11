@@ -68,7 +68,7 @@ class YouTubeService {
 
       // Fetch videos from uploads playlist
       debugPrint('YouTubeService.fetchChannelContent: Fetching videos from playlist');
-      final videos = await _fetchPlaylistVideos(uploadsPlaylistId, excludeIds: excludeVideoIds);
+      final videos = await fetchPlaylistVideos(uploadsPlaylistId, excludeIds: excludeVideoIds);
       debugPrint('YouTubeService.fetchChannelContent: Fetched ${videos.length} videos');
 
       // Fetch all playlists from the channel
@@ -183,11 +183,27 @@ class YouTubeService {
     }
   }
 
+  /// Converts a YouTube video URL to a YoutubeVideo object
+  /// Supports: youtube.com/watch?v=VIDEO_ID, youtu.be/VIDEO_ID, or direct video ID
+  static Future<YoutubeVideo> videoUrlToYoutubeVideo(String videoUrl) async {
+    final videoId = _extractVideoId(videoUrl);
+    if (videoId.isEmpty) throw 'Invalid YouTube video URL format';
+    return _fetchVideoDetails(videoId);
+  }
+
+  /// Converts a YouTube playlist URL to a Series object
+  /// Supports: youtube.com/playlist?list=PLAYLIST_ID or direct playlist ID
+  static Future<Series> playlistUrlToSeries(String playlistUrl) async {
+    final playlistId = _extractPlaylistId(playlistUrl);
+    if (playlistId.isEmpty) throw 'Invalid YouTube playlist URL format';
+    return _fetchPlaylistDetails(playlistId);
+  }
+
   /// Fetches videos from a playlist, sorted by most recent first
   /// [maxResults] - Number of most recent videos to return
   /// [excludeIds] - Set of video IDs to exclude (useful for incremental updates)
   /// Returns a list of Video objects sorted by published date (newest first)
-  static Future<List<YoutubeVideo>> _fetchPlaylistVideos(
+  static Future<List<YoutubeVideo>> fetchPlaylistVideos(
     String playlistId, {
     int maxResults = 50,
     Set<String> excludeIds = const {},
@@ -287,7 +303,7 @@ class YouTubeService {
           final playlistId = item['id'];
 
           // Fetch videos in this playlist
-          final playlistVideos = await _fetchPlaylistVideos(playlistId, maxResults: 100);
+          final playlistVideos = await fetchPlaylistVideos(playlistId, maxResults: 100);
           final videoIds = playlistVideos.map((v) => v.id).toList();
 
           if (playlistId != null) {
@@ -310,6 +326,117 @@ class YouTubeService {
       return series;
     } catch (error) {
       debugPrint('YouTubeService._fetchChannelPlaylists error: $error');
+      rethrow;
+    }
+  }
+
+  /// Extracts video ID from various YouTube video URL formats
+  static String _extractVideoId(String url) {
+    try {
+      // Handle direct video ID (11 chars, no slashes or params)
+      if (url.length == 11 && !url.contains('/') && !url.contains('?')) return url;
+
+      // Handle youtube.com/watch?v=VIDEO_ID
+      if (url.contains('watch?v=')) {
+        return url.split('watch?v=').last.split('&').first;
+      }
+
+      // Handle youtu.be/VIDEO_ID
+      if (url.contains('youtu.be')) {
+        return url.split('youtu.be/').last.split('?').first;
+      }
+
+      return '';
+    } catch (error) {
+      debugPrint('YouTubeService._extractVideoId error: $error');
+      return '';
+    }
+  }
+
+  /// Extracts playlist ID from various YouTube playlist URL formats
+  static String _extractPlaylistId(String url) {
+    try {
+      // Handle direct playlist ID (starts with PL)
+      if (url.startsWith('PL') && url.length > 10) return url;
+
+      // Handle youtube.com/playlist?list=PLAYLIST_ID
+      if (url.contains('list=')) {
+        return url.split('list=').last.split('&').first;
+      }
+
+      return '';
+    } catch (error) {
+      debugPrint('YouTubeService._extractPlaylistId error: $error');
+      return '';
+    }
+  }
+
+  /// Fetches detailed information for a single video
+  static Future<YoutubeVideo> _fetchVideoDetails(String videoId) async {
+    try {
+      final apiKey = _getApiKey();
+      final uri = Uri.parse('$_baseUrl/videos?part=snippet&id=$videoId&key=$apiKey');
+
+      final response = await http.get(uri).timeout(const Duration(seconds: 15));
+
+      if (response.statusCode != 200) {
+        throw 'Failed to fetch video details: ${response.statusCode}';
+      }
+
+      final data = jsonDecode(response.body);
+      final items = data['items'] as List?;
+
+      if (items == null || items.isEmpty) {
+        throw 'Video "$videoId" not found';
+      }
+
+      final snippet = items[0]['snippet'];
+      return YoutubeVideo(
+        id: videoId,
+        title: snippet?['title'] ?? 'Untitled',
+        published: DateTime.tryParse(snippet?['publishedAt']),
+        description: snippet?['description'],
+        imageUrl: snippet?['thumbnails']?['high']?['url'],
+        overrideUrl: 'https://www.youtube.com/watch?v=$videoId',
+      );
+    } catch (error) {
+      debugPrint('YouTubeService._fetchVideoDetails error: $error');
+      rethrow;
+    }
+  }
+
+  /// Fetches detailed information for a playlist
+  static Future<Series> _fetchPlaylistDetails(String playlistId) async {
+    try {
+      final apiKey = _getApiKey();
+      final uri = Uri.parse('$_baseUrl/playlists?part=snippet&id=$playlistId&key=$apiKey');
+
+      final response = await http.get(uri).timeout(const Duration(seconds: 15));
+
+      if (response.statusCode != 200) {
+        throw 'Failed to fetch playlist details: ${response.statusCode}';
+      }
+
+      final data = jsonDecode(response.body);
+      final items = data['items'] as List?;
+
+      if (items == null || items.isEmpty) {
+        throw 'Playlist "$playlistId" not found';
+      }
+
+      final snippet = items[0]['snippet'];
+      final playlistVideos = await fetchPlaylistVideos(playlistId, maxResults: 100);
+      final videoIds = playlistVideos.map((v) => v.id).toList();
+
+      return Series(
+        id: playlistId,
+        title: snippet?['title'] ?? 'Untitled Playlist',
+        description: snippet?['description'],
+        imageUrl: snippet?['thumbnails']?['high']?['url'],
+        videoIds: videoIds,
+      );
+    } catch (error) {
+      debugPrint('YouTubeService._fetchPlaylistDetails error: $error');
       rethrow;
     }
   }
