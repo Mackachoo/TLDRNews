@@ -21,6 +21,19 @@ class TLDRTheme {
 
         cardTheme: CardThemeData(shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero)),
 
+        popupMenuTheme: PopupMenuThemeData(
+          color: colourScheme.primaryContainer,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+          textStyle: textTheme.titleMedium?.copyWith(color: colourScheme.onPrimaryContainer),
+        ),
+
+        dialogTheme: DialogThemeData(
+          backgroundColor: colourScheme.surface,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+          titleTextStyle: textTheme.headlineMedium?.copyWith(color: colourScheme.onSurface),
+          contentTextStyle: textTheme.bodyMedium?.copyWith(color: colourScheme.onSurface),
+        ),
+
         iconButtonTheme: IconButtonThemeData(
           style: ButtonStyle(
             foregroundColor: WidgetStateProperty.all(colourScheme.onSurfaceVariant),
@@ -33,6 +46,13 @@ class TLDRTheme {
             padding: WidgetStateProperty.all(const EdgeInsets.all(12)),
             foregroundColor: WidgetStateProperty.all(colourScheme.onPrimary),
             backgroundColor: WidgetStateProperty.all(colourScheme.primary),
+            textStyle: WidgetStateProperty.all(textTheme.titleMedium),
+            shape: WidgetStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.zero)),
+          ),
+        ),
+        textButtonTheme: TextButtonThemeData(
+          style: ButtonStyle(
+            foregroundColor: WidgetStateProperty.all(colourScheme.primary),
             textStyle: WidgetStateProperty.all(textTheme.titleMedium),
             shape: WidgetStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.zero)),
           ),

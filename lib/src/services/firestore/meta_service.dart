@@ -34,7 +34,16 @@ class MetaService extends FirestoreCore {
       );
     } catch (error) {
       debugPrint('MetaService.retrieveAll: $error');
-      return {};
+      rethrow;
+    }
+  }
+
+  Future<void> set(String uid, {required String key, Object? value}) async {
+    try {
+      await meta.doc(uid).set({key: value}, SetOptions(merge: true));
+    } catch (error) {
+      debugPrint('MetaService.set: $error');
+      rethrow;
     }
   }
 }

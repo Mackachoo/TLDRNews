@@ -33,6 +33,18 @@ class AuthScreen extends StatelessWidget {
                           style: context.textTheme.headlineMedium,
                         ),
                       ),
+                      ListTile(
+                        title: Text('Email:', style: context.textTheme.titleMedium),
+                        trailing: Card(
+                          child: Padding(
+                            padding: .all(8.0),
+                            child: Text(
+                              App.ctlr.auth.account!.email ?? 'No email',
+                              style: context.textTheme.bodyMedium,
+                            ),
+                          ),
+                        ),
+                      ),
                       if (App.ctlr.auth.meta?.admin == true)
                         ListTile(
                           leading: PhosphorIcon(

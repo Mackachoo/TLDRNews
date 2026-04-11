@@ -6,6 +6,7 @@ part 'account.g.dart';
 class Account {
   final String uid;
   final String? name;
+  final String? email;
 
   // Consent
   final bool analyticsConsent;
@@ -14,6 +15,7 @@ class Account {
   Account({
     required this.uid,
     this.name,
+    this.email,
     this.analyticsConsent = false,
     this.marketingConsent = false,
   });

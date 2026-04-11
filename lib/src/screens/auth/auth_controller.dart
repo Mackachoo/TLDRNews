@@ -6,6 +6,7 @@ import 'package:tldrnews_app/src/objects/account/account.dart';
 import 'package:tldrnews_app/src/objects/account/meta.dart';
 import 'package:tldrnews_app/src/services/auth_service.dart';
 import 'package:tldrnews_app/src/services/firestore_service.dart';
+import 'package:tldrnews_app/src/utils/message.dart';
 
 class AccountController with ChangeNotifier {
   static final AuthService _service = AuthService();
@@ -63,6 +64,7 @@ class AccountController with ChangeNotifier {
         Account(
           uid: credential!.user!.uid,
           name: credential!.user!.displayName!,
+          email: credential!.user!.email!,
           analyticsConsent: consent?['analytics'] ?? false,
           marketingConsent: consent?['marketing'] ?? false,
         ),
@@ -83,27 +85,19 @@ class AccountController with ChangeNotifier {
     if (context.mounted) {
       switch (errorCode) {
         case 'invalid-email':
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Invalid email address')));
+          Message.error(context, 'Invalid email address');
           break;
         case 'email-already-in-use':
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Email already in use')));
+          Message.error(context, 'Email already in use');
           break;
         case 'weak-password':
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Password is too weak')));
+          Message.error(context, 'Password is too weak');
           break;
         case 'invalid-credential':
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Invalid credentials')));
+          Message.error(context, 'Invalid credentials');
           break;
         default:
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('An error occurred')));
+          Message.error(context, 'An error occurred');
           break;
       }
     }
@@ -114,17 +108,13 @@ class AccountController with ChangeNotifier {
       try {
         await _service.resetEmail(emailController.text.trim());
         if (context.mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Password reset email sent')));
+          Message.error(context, 'Password reset email sent');
         }
         return true;
       } catch (e) {
         debugPrint('Failed to send password reset email: $e');
         if (context.mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Failed to send password reset email')));
+          Message.error(context, 'Failed to send password reset email');
         }
       }
     }

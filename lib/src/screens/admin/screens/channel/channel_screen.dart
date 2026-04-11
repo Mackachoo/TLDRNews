@@ -47,13 +47,7 @@ class AdminChannelScreen extends StatelessWidget {
   Column primary(BuildContext context, AdminChannelController ctlr) => Column(
     spacing: 16,
     mainAxisSize: MainAxisSize.min,
-    children: [
-      headingTile(context, ctlr),
-      saveTile(context, ctlr),
-      crmActionBar(context, ctlr),
-      if (ctlr.errorMessage.isNotEmpty || ctlr.successMessage.isNotEmpty)
-        messageCard(context, ctlr),
-    ],
+    children: [headingTile(context, ctlr), saveTile(context, ctlr), crmActionBar(context, ctlr)],
   );
 
   ListTile headingTile(BuildContext context, AdminChannelController ctlr) {
@@ -71,41 +65,10 @@ class AdminChannelScreen extends StatelessWidget {
       trailing: ctlr.isFetching
           ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
           : ElevatedButton.icon(
-              onPressed: () => ctlr.fetchChannelConntentFromYoutube(),
+              onPressed: () => ctlr.fetchChannelConntentFromYoutube(context),
               icon: PhosphorIcon(PhosphorIcons.download()),
               label: const Text('Fetch'),
             ),
-    );
-  }
-
-  Widget messageCard(BuildContext context, AdminChannelController ctlr) {
-    if (ctlr.errorMessage.isEmpty && ctlr.successMessage.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    final isError = ctlr.errorMessage.isNotEmpty;
-    final message = isError ? ctlr.errorMessage : ctlr.successMessage;
-    final color = isError ? context.colors.error : context.colors.primary;
-
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: color.withAlpha(25),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withAlpha(50)),
-      ),
-      child: Row(
-        children: [
-          Icon(isError ? Icons.error_outline : Icons.check_circle_outline, color: color, size: 20),
-          const SizedBox(width: 12),
-          Expanded(
-            child: SelectableText(
-              message,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: color),
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -114,7 +77,10 @@ class AdminChannelScreen extends StatelessWidget {
       leading: PhosphorIcon(PhosphorIcons.floppyDisk()),
       title: Text('Save Changes', style: Theme.of(context).textTheme.bodyMedium),
       subtitle: Text('Persist changes to Firestore', style: Theme.of(context).textTheme.bodySmall),
-      trailing: ElevatedButton(onPressed: () => ctlr.saveChannel(), child: const Text('Save')),
+      trailing: ElevatedButton(
+        onPressed: () => ctlr.saveChannel(context),
+        child: const Text('Save'),
+      ),
     );
   }
 
@@ -130,6 +96,7 @@ class AdminChannelScreen extends StatelessWidget {
     return StatefulBuilder(
       builder: (context, setState) {
         return Column(
+          spacing: 4,
           mainAxisSize: .min,
           children: [
             ListTile(

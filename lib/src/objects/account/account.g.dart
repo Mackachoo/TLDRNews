@@ -9,6 +9,7 @@ part of 'account.dart';
 Account _$AccountFromJson(Map<String, dynamic> json) => Account(
   uid: json['uid'] as String,
   name: json['name'] as String?,
+  email: json['email'] as String?,
   analyticsConsent: json['analyticsConsent'] as bool? ?? false,
   marketingConsent: json['marketingConsent'] as bool? ?? false,
 );
@@ -16,6 +17,7 @@ Account _$AccountFromJson(Map<String, dynamic> json) => Account(
 Map<String, dynamic> _$AccountToJson(Account instance) => <String, dynamic>{
   'uid': instance.uid,
   'name': instance.name,
+  'email': instance.email,
   'analyticsConsent': instance.analyticsConsent,
   'marketingConsent': instance.marketingConsent,
 };

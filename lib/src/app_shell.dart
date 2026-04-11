@@ -42,7 +42,7 @@ class AppShell extends StatelessWidget {
 
     return AppBar(
       backgroundColor: context.colors.secondaryFixedDim,
-      foregroundColor: context.colors.onSecondary,
+      foregroundColor: context.colors.onSecondaryFixed,
       leadingWidth: 96,
       leading: SizedBox(
         height: double.infinity,

@@ -50,4 +50,16 @@ class AccountService extends FirestoreCore {
     final doc = await accounts.doc(uid).get();
     return doc.exists;
   }
+
+  // This will only work for admins as only they can read other accounts
+  Future<String?> find(String email) async {
+    try {
+      final query = await accounts.where('email', isEqualTo: email).limit(1).get();
+      if (query.docs.isEmpty) return null;
+      return query.docs.first.id;
+    } catch (error) {
+      debugPrint('AccountService.find: $error');
+      rethrow;
+    }
+  }
 }
