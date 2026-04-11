@@ -12,7 +12,7 @@ Channel _$ChannelFromJson(Map<String, dynamic> json) => Channel(
   channelUrl: json['channelUrl'] as String,
   description: json['description'] as String?,
   videos: (json['videos'] as Map<String, dynamic>?)?.map(
-    (k, e) => MapEntry(k, Video.fromJson(e as Map<String, dynamic>)),
+    (k, e) => MapEntry(k, YoutubeVideo.fromJson(e as Map<String, dynamic>)),
   ),
   series: (json['series'] as Map<String, dynamic>?)?.map(
     (k, e) => MapEntry(k, Series.fromJson(e as Map<String, dynamic>)),

@@ -41,7 +41,8 @@ class AppShell extends StatelessWidget {
     bool showReturn = route != '/' && !route.startsWith('/channel/');
 
     return AppBar(
-      backgroundColor: context.colors.secondaryContainer,
+      backgroundColor: context.colors.secondaryFixedDim,
+      foregroundColor: context.colors.onSecondary,
       leadingWidth: 96,
       leading: SizedBox(
         height: double.infinity,

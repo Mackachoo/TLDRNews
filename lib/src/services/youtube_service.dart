@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:tldrnews_app/src/objects/content/video.dart';
+import 'package:tldrnews_app/src/objects/content/youtube_video.dart';
 import 'package:tldrnews_app/src/objects/content/series.dart';
 import 'package:tldrnews_app/src/services/config_service.dart';
 
@@ -181,9 +181,12 @@ class YouTubeService {
 
   /// Fetches all videos from a playlist
   /// Returns a list of Video objects
-  static Future<List<Video>> _fetchPlaylistVideos(String playlistId, {int maxResults = 50}) async {
+  static Future<List<YoutubeVideo>> _fetchPlaylistVideos(
+    String playlistId, {
+    int maxResults = 50,
+  }) async {
     try {
-      final videos = <Video>[];
+      final videos = <YoutubeVideo>[];
       String? pageToken;
       int totalFetched = 0;
 
@@ -208,12 +211,12 @@ class YouTubeService {
           final videoId = snippet?['resourceId']?['videoId'];
 
           if (videoId != null) {
-            final video = Video(
+            final video = YoutubeVideo(
               id: videoId,
               title: snippet?['title'] ?? 'Untitled',
               description: snippet?['description'],
               imageUrl: snippet?['thumbnails']?['high']?['url'],
-              videoUrl: 'https://www.youtube.com/watch?v=$videoId',
+              overrideUrl: 'https://www.youtube.com/watch?v=$videoId',
             );
             videos.add(video);
             totalFetched++;

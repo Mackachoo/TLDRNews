@@ -11,12 +11,11 @@ class Video extends Content {
   Video({
     required super.id,
     required super.title,
+    super.published,
     super.description,
     super.imageUrl,
     this.videoUrl,
   });
-
-  String get youtubeUrl => videoUrl ?? 'https://www.youtube.com/watch?v=$id';
 
   @override
   Map<String, dynamic> toJson() => _$VideoToJson(this);

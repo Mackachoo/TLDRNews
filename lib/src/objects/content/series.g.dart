@@ -9,6 +9,9 @@ part of 'series.dart';
 Series _$SeriesFromJson(Map<String, dynamic> json) => Series(
   id: json['id'] as String,
   title: json['title'] as String,
+  published: json['published'] == null
+      ? null
+      : DateTime.parse(json['published'] as String),
   description: json['description'] as String?,
   imageUrl: json['imageUrl'] as String?,
   videoIds:
@@ -18,6 +21,7 @@ Series _$SeriesFromJson(Map<String, dynamic> json) => Series(
 
 Map<String, dynamic> _$SeriesToJson(Series instance) => <String, dynamic>{
   'title': instance.title,
+  'published': instance.published?.toIso8601String(),
   'description': instance.description,
   'imageUrl': instance.imageUrl,
 };

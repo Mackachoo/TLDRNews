@@ -1,12 +1,12 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of '_content.dart';
+part of 'youtube_video.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-Content _$ContentFromJson(Map<String, dynamic> json) => Content(
+YoutubeVideo _$YoutubeVideoFromJson(Map<String, dynamic> json) => YoutubeVideo(
   id: json['id'] as String,
   title: json['title'] as String,
   published: json['published'] == null
@@ -14,11 +14,13 @@ Content _$ContentFromJson(Map<String, dynamic> json) => Content(
       : DateTime.parse(json['published'] as String),
   description: json['description'] as String?,
   imageUrl: json['imageUrl'] as String?,
+  overrideUrl: json['overrideUrl'] as String?,
 );
 
-Map<String, dynamic> _$ContentToJson(Content instance) => <String, dynamic>{
-  'title': instance.title,
-  'published': instance.published?.toIso8601String(),
-  'description': instance.description,
-  'imageUrl': instance.imageUrl,
-};
+Map<String, dynamic> _$YoutubeVideoToJson(YoutubeVideo instance) =>
+    <String, dynamic>{
+      'title': instance.title,
+      'published': instance.published?.toIso8601String(),
+      'description': instance.description,
+      'imageUrl': instance.imageUrl,
+    };

@@ -11,6 +11,7 @@ class Series extends Content {
   Series({
     required super.id,
     required super.title,
+    super.published,
     super.description,
     super.imageUrl,
     this.videoIds = const [],

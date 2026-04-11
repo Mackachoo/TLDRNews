@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import 'package:tldrnews_app/src/objects/content/video.dart';
+import 'package:tldrnews_app/src/objects/content/youtube_video.dart';
 import 'package:tldrnews_app/src/screens/admin/screens/channel/channel_controller.dart';
 import 'package:tldrnews_app/src/utils/extensions/context.dart';
 
@@ -125,7 +125,7 @@ class AdminChannelScreen extends StatelessWidget {
     children: ctlr.channel?.videos.values.map((video) => videoCard(context, video)).toList() ?? [],
   );
 
-  Widget videoCard(BuildContext context, Video video) {
+  Widget videoCard(BuildContext context, YoutubeVideo video) {
     bool expanded = false;
     return StatefulBuilder(
       builder: (context, setState) {

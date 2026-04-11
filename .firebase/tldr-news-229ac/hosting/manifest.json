@@ -1,6 +1,6 @@
 {
-    "name": "tldrnews_app",
-    "short_name": "tldrnews_app",
+    "name": "TLDR News",
+    "short_name": "TLDR News",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#3960B8",

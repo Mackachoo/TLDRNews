@@ -1,182 +1,70 @@
-import 'package:chewie/chewie.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:tldrnews_app/src/app.dart';
-import 'package:tldrnews_app/src/objects/content/video.dart';
-import 'package:video_player/video_player.dart';
-import 'package:youtube_player_flutter/youtube_player_flutter.dart' as yt;
+import 'package:tldrnews_app/src/objects/content/youtube_video.dart';
+import 'package:tldrnews_app/src/widgets/video_player/app_video_player.dart';
+import 'package:tldrnews_app/src/widgets/video_player/web_video_player.dart';
+import 'package:tldrnews_app/src/widgets/video_player/youtube_player.dart';
 
-// Web-only imports - these will only be used on web platform
-import 'dart:ui_web' as ui_web;
-import 'dart:html' as html;
-
-class VideoScreen extends StatefulWidget {
+class VideoScreen extends StatelessWidget {
   const VideoScreen(this.videoId, {super.key});
 
   final String videoId;
 
   @override
-  State<VideoScreen> createState() => _VideoScreenState();
-}
-
-class _VideoScreenState extends State<VideoScreen> {
-  late VideoPlayerController _videoPlayerController;
-  late yt.YoutubePlayerController _youtubeController;
-  ChewieController? _chewieController;
-  bool _isYoutubeVideo = false;
-  bool _isInitialized = false;
-  Video? _video;
-  String? _errorMessage;
-  String? _youtubeVideoId;
-
-  @override
-  void initState() {
-    super.initState();
-    _findAndInitializeVideo();
-  }
-
-  Future<void> _findAndInitializeVideo() async {
-    try {
-      // Search through all loaded channels for this video
-      Video? foundVideo;
-      for (final channelCtlr in App.ctlr.channels.values) {
-        foundVideo = channelCtlr.channel?.videos[widget.videoId];
-        if (foundVideo != null) break;
-      }
-
-      if (foundVideo == null) {
-        setState(() {
-          _errorMessage = 'Video not found';
-          _isInitialized = true;
-        });
-        return;
-      }
-
-      _video = foundVideo;
-      await _initializeVideo(foundVideo);
-    } catch (e) {
-      setState(() {
-        _errorMessage = 'Error loading video: ${e.toString()}';
-        _isInitialized = true;
-      });
-    }
-  }
-
-  Future<void> _initializeVideo(Video video) async {
-    final url = video.youtubeUrl;
-    final videoId = yt.YoutubePlayer.convertUrlToId(url);
-
-    if (videoId != null && !kIsWeb) {
-      // It's a YouTube URL and we're on native platform
-      _isYoutubeVideo = true;
-      _youtubeController = yt.YoutubePlayerController(
-        initialVideoId: videoId,
-        flags: const yt.YoutubePlayerFlags(autoPlay: true, mute: false),
-      );
-    } else if (videoId != null && kIsWeb) {
-      // YouTube URL on web - register iframe platform view
-      _isYoutubeVideo = true;
-      _youtubeVideoId = videoId;
-      _registerYoutubeIframeWeb(videoId);
-    } else {
-      // Assume it's a direct video URL
-      _videoPlayerController = VideoPlayerController.networkUrl(Uri.parse(url));
-      await _videoPlayerController.initialize();
-
-      _chewieController = ChewieController(
-        videoPlayerController: _videoPlayerController,
-        autoPlay: true,
-        looping: false,
-        aspectRatio: _videoPlayerController.value.aspectRatio,
-      );
-    }
-
-    if (mounted) {
-      setState(() {
-        _isInitialized = true;
-      });
-    }
-  }
-
-  void _registerYoutubeIframeWeb(String videoId) {
-    if (!kIsWeb) return;
-
-    try {
-      ui_web.platformViewRegistry.registerViewFactory('youtube-iframe-$videoId', (int viewId) {
-        // Create iframe element
-        final iframe = html.IFrameElement()
-          ..src = 'https://www.youtube.com/embed/$videoId?autoplay=1&controls=1'
-          ..style.border = 'none'
-          ..style.width = '100%'
-          ..style.height = '100%'
-          ..setAttribute('allow', 'autoplay');
-        return iframe;
-      });
-    } catch (e) {
-      debugPrint('Error registering YouTube iframe: $e');
-    }
-  }
-
-  @override
-  void dispose() {
-    if (_isYoutubeVideo && !kIsWeb) {
-      _youtubeController.dispose();
-    } else {
-      _chewieController?.dispose();
-      if (!_isYoutubeVideo) {
-        _videoPlayerController.dispose();
-      }
-    }
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    if (!_isInitialized) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
+    final video = retrieveVideo();
 
-    if (_errorMessage != null) {
+    if (video == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Video Player')),
-        body: Center(child: Text(_errorMessage!)),
+        appBar: AppBar(title: const Text('Unknown Video')),
+        body: const Center(
+          child: Text(
+            'Sorry, this video was not found. It may have been removed or is not available.',
+          ),
+        ),
       );
-    }
-
-    if (_video == null) {
-      return const Scaffold(body: Center(child: Text('Video not found')));
     }
 
     return Scaffold(
-      appBar: AppBar(automaticallyImplyLeading: false, title: Text(_video!.title)),
+      appBar: AppBar(automaticallyImplyLeading: false, title: Text(video.title)),
       body: SingleChildScrollView(
-        child: Column(
-          children: [
-            if (_isYoutubeVideo && !kIsWeb)
-              yt.YoutubePlayer(controller: _youtubeController, showVideoProgressIndicator: true)
-            else if (_isYoutubeVideo && kIsWeb && _youtubeVideoId != null)
-              AspectRatio(
-                aspectRatio: 16 / 9,
-                child: HtmlElementView(viewType: 'youtube-iframe-$_youtubeVideoId'),
-              )
-            else if (_chewieController != null)
-              Chewie(controller: _chewieController!),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(_video!.title, style: Theme.of(context).textTheme.titleLarge),
-                  if (_video!.description != null) ...[
-                    const SizedBox(height: 8),
-                    Text(_video!.description!, style: Theme.of(context).textTheme.bodyMedium),
-                  ],
-                ],
-              ),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: 800),
+            child: Column(
+              children: [
+                YoutubeVideoPlayer(video),
+                // if (kIsWeb) WebVideoPlayer(video) else AppVideoPlayer(video),
+                Card(
+                  margin: .only(top: 16),
+                  child: Padding(
+                    padding: .all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(video.title, style: Theme.of(context).textTheme.titleLarge),
+                        if (video.description != null) ...[
+                          const SizedBox(height: 8),
+                          Text(video.description!, style: Theme.of(context).textTheme.bodyMedium),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
+  }
+
+  YoutubeVideo? retrieveVideo() {
+    for (final channelCtlr in App.ctlr.channels.values) {
+      final video = channelCtlr.channel?.videos[videoId];
+      if (video != null) return video;
+    }
+    return null;
   }
 }

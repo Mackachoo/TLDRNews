@@ -1,7 +1,7 @@
 import 'package:tldrnews_app/src/objects/channel/snippets.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:tldrnews_app/src/objects/content/series.dart';
-import 'package:tldrnews_app/src/objects/content/video.dart';
+import 'package:tldrnews_app/src/objects/content/youtube_video.dart';
 
 part 'channel.g.dart';
 
@@ -12,7 +12,7 @@ class Channel extends ChannelSnippet {
     required super.name,
     required this.channelUrl,
     this.description,
-    Map<String, Video>? videos,
+    Map<String, YoutubeVideo>? videos,
     Map<String, Series>? series,
   }) : videos = videos ?? {},
        series = series ?? {};
@@ -20,7 +20,7 @@ class Channel extends ChannelSnippet {
   final String channelUrl;
   final String? description;
 
-  final Map<String, Video> videos;
+  final Map<String, YoutubeVideo> videos;
   final Map<String, Series> series;
 
   factory Channel.fromJson(Map<String, dynamic> json) => _$ChannelFromJson(json);

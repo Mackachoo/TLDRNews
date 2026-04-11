@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:tldrnews_app/src/screens/channels/channel_controller.dart';
 import 'package:tldrnews_app/src/screens/channels/widgets/video_widget.dart';
+import 'package:tldrnews_app/src/widgets/responsive_grid.dart';
 
 class VideoGrid extends StatelessWidget {
   const VideoGrid(this.ctlr, {super.key});
@@ -9,15 +10,8 @@ class VideoGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GridView.count(
-      padding: .all(16),
-      shrinkWrap: true,
-      // physics: NeverScrollableScrollPhysics(),
-      crossAxisCount: (MediaQuery.of(context).size.width / 200).floor().clamp(1, 4),
+    final videos = ctlr.channel!.videos.values.map((video) => VideoWidget(video)).toList();
 
-      mainAxisSpacing: 16,
-      crossAxisSpacing: 16,
-      children: ctlr.channel!.videos.entries.map((entry) => VideoWidget(entry.value)).toList(),
-    );
+    return ResponsiveGrid(minItemWidth: 200, maxCrossAxisCount: 4, children: videos);
   }
 }

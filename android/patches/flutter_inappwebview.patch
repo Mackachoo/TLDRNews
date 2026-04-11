@@ -1,0 +1,10 @@
+--- a/flutter_inappwebview/android/build.gradle
++++ b/flutter_inappwebview/android/build.gradle
+@@ -1,6 +1,7 @@
+ group 'com.pichillilorenzo.flutter_inappwebview'
+ version '1.0-SNAPSHOT'
+ 
+ android {
++    namespace "com.pichillilorenzo.flutter_inappwebview"
++
+     compileSdkVersion 34

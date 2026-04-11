@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:tldrnews_app/src/objects/channel/snippets.dart';
 import 'package:tldrnews_app/src/utils/extensions/context.dart';
+import 'package:tldrnews_app/src/widgets/responsive_grid.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -26,13 +27,9 @@ class HomeScreen extends StatelessWidget {
               crossAxisAlignment: .start,
               children: [
                 Text('Our Channels', style: Theme.of(context).textTheme.headlineSmall),
-                GridView.count(
-                  shrinkWrap: true,
+                ResponsiveGrid(
                   physics: NeverScrollableScrollPhysics(),
-                  crossAxisCount: (MediaQuery.of(context).size.width / 200).floor().clamp(1, 6),
-                  childAspectRatio: 1,
-                  mainAxisSpacing: 16,
-                  crossAxisSpacing: 16,
+                  minItemWidth: 120,
                   children: ChannelSnippets.buttons(context, null),
                 ),
               ],

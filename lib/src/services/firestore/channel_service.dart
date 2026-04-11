@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:tldrnews_app/src/objects/channel/channel.dart';
 import 'package:tldrnews_app/src/objects/content/series.dart';
-import 'package:tldrnews_app/src/objects/content/video.dart';
+import 'package:tldrnews_app/src/objects/content/youtube_video.dart';
 import 'package:tldrnews_app/src/services/firestore/_firestore_core.dart';
 import 'package:tldrnews_app/src/utils/extensions/core.dart';
 
@@ -22,13 +22,13 @@ class ChannelService extends FirestoreCore {
         final data = channelDoc.data() as Json;
 
         // Manually deserialize videos with error handling
-        final Map<String, Video> videos = {};
+        final Map<String, YoutubeVideo> videos = {};
         if (data['videos'] is Map) {
           for (final entry in (data['videos'] as Map).entries) {
             try {
               final videoJson = Map<String, dynamic>.from(entry.value as Map);
               videoJson['id'] = entry.key;
-              videos[entry.key] = Video.fromJson(videoJson);
+              videos[entry.key] = YoutubeVideo.fromJson(videoJson);
             } catch (e) {
               debugPrint('ChannelService.retrieve: Skipping malformed video ${entry.key}: $e');
             }
