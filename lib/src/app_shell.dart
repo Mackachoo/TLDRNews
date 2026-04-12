@@ -4,7 +4,6 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:tldrnews_app/src/app.dart';
 import 'package:tldrnews_app/src/objects/channel/snippets.dart';
 import 'package:tldrnews_app/src/utils/extensions/context.dart';
-import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 
 class AppShell extends StatelessWidget {
   const AppShell({super.key, required this.child, required this.state});
@@ -15,29 +14,21 @@ class AppShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final orientation = MediaQuery.of(context).orientation;
-    return YoutubePlayerScaffold(
-      autoFullScreen: false,
-      controller: App.ctlr.youtube.controller,
-      builder: (context, player) {
-        App.ctlr.youtube.scaffoldPlayer = player;
-        return Scaffold(
-          appBar: appBar(context),
-          bottomNavigationBar: orientation == .portrait ? navbar(context) : null,
-          floatingActionButton: App.ctlr.youtube.player(mode: .floating),
-          body: Row(
-            children: [
-              if (orientation == .landscape) navbar(context),
-              Expanded(
-                child: Container(
-                  alignment: .topCenter,
-                  constraints: BoxConstraints(maxWidth: 800),
-                  child: child,
-                ),
-              ),
-            ],
+    return Scaffold(
+      appBar: appBar(context),
+      bottomNavigationBar: orientation == .portrait ? navbar(context) : null,
+      body: Row(
+        children: [
+          if (orientation == .landscape) navbar(context),
+          Expanded(
+            child: Container(
+              alignment: .topCenter,
+              constraints: BoxConstraints(maxWidth: 800),
+              child: child,
+            ),
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 
