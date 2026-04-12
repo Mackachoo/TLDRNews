@@ -3,12 +3,34 @@ import 'package:tldrnews_app/src/app.dart';
 import 'package:tldrnews_app/src/objects/channel/channel.dart';
 import 'package:tldrnews_app/src/objects/content/youtube_video.dart';
 import 'package:tldrnews_app/src/utils/extensions/core.dart';
-import 'package:tldrnews_app/src/widgets/video_players/youtube_player.dart';
+import 'package:tldrnews_app/src/utils/youtube_controller.dart';
 
-class VideoScreen extends StatelessWidget {
+class VideoScreen extends StatefulWidget {
   const VideoScreen(this.videoId, {super.key});
 
   final String videoId;
+
+  @override
+  State<VideoScreen> createState() => _VideoScreenState();
+}
+
+class _VideoScreenState extends State<VideoScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Switch to full-screen mode when this screen is displayed
+    // Use addPostFrameCallback to avoid setState during build
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => App.ctlr.youtube.displayMode = PlayerDisplayMode.fullScreen,
+    );
+  }
+
+  @override
+  void dispose() {
+    // Switch back to floating mode when leaving
+    App.ctlr.youtube.displayMode = PlayerDisplayMode.floating;
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,6 +48,7 @@ class VideoScreen extends StatelessWidget {
     }
     final channel = result.$1;
     final video = result.$2;
+    App.ctlr.youtube.start(video.id);
 
     return Scaffold(
       appBar: AppBar(automaticallyImplyLeading: false, title: Text(video.title)),
@@ -35,7 +58,8 @@ class VideoScreen extends StatelessWidget {
             constraints: BoxConstraints(maxWidth: 800),
             child: Column(
               children: [
-                YoutubeVideoPlayer(video),
+                App.ctlr.youtube.player(),
+                // YoutubeVideoPlayer(video),
                 Card(
                   margin: .only(top: 16),
                   child: Container(
@@ -71,7 +95,7 @@ class VideoScreen extends StatelessWidget {
 
   (Channel, YoutubeVideo)? retrieveVideo() {
     for (final channelCtlr in App.ctlr.channels.values) {
-      final video = channelCtlr.channel?.videos[videoId];
+      final video = channelCtlr.channel?.videos[widget.videoId];
       if (video != null) return (channelCtlr.channel!, video);
     }
     return null;
