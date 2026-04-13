@@ -13,7 +13,7 @@ class AppCtlr {
 
   //* System-Wide Controllers -------------------------
 
-  final auth = AccountController();
+  final auth = AuthController();
   final settings = SettingsController();
   final channels = <String, ChannelController>{};
   ChannelController channel(ChannelSnippet snippet) =>

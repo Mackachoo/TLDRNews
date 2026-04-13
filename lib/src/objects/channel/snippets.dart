@@ -37,11 +37,5 @@ class ChannelSnippets {
   static ChannelSnippet? byId(String id) => all.firstWhereOrNull((channel) => channel.id == id);
 
   static List<ChannelSnippet> get all => [party, uk, global, eu, business, podcasts];
-  static List<Widget> buttons(
-    BuildContext context, {
-    bool desaturate = false,
-    void Function(String id)? onTap,
-  }) => ChannelSnippets.all
-      .map((c) => c.button(context, desaturate: desaturate, onTap: onTap))
-      .toList();
+  static List<ChannelSnippet> get free => [party, uk, global, eu, business, podcasts];
 }

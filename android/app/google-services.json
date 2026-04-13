@@ -12,7 +12,20 @@
           "package_name": "com.tldrnews.app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "628191602084-e6ob85lq488gmd2bfu2pu4sk9tk64ihl.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.tldrnews.app",
+            "certificate_hash": "ad5c6657e87331986542254309746a4783776f66"
+          }
+        },
+        {
+          "client_id": "628191602084-f8mfo4pn9km8a44o7aaieooui8pisvri.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyC29MnnNOIDPEuVMHkXzopjiQYE6W6NESk"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "628191602084-f8mfo4pn9km8a44o7aaieooui8pisvri.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "628191602084-usae2tho7dkm8ognjs24j8hdn83k53i9.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.tldrnews.app"
+              }
+            }
+          ]
         }
       }
     }

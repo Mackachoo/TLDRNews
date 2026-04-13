@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -6,10 +7,9 @@ import 'package:tldrnews_app/src/objects/channel/snippets.dart';
 import 'package:tldrnews_app/src/utils/extensions/context.dart';
 
 class AppShell extends StatelessWidget {
-  const AppShell({super.key, required this.child, required this.state});
+  const AppShell({super.key, required this.child});
 
   final Widget child;
-  final GoRouterState state;
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +51,7 @@ class AppShell extends StatelessWidget {
           child: IconButton(
             padding: .symmetric(horizontal: 8, vertical: 0),
             onPressed: () => showReturn ? context.forcePop() : context.go('/'),
-            icon: showReturn
+            icon: showReturn && !kIsWeb
                 ? PhosphorIcon(PhosphorIcons.arrowLeft(PhosphorIconsStyle.bold))
                 : Image.asset('assets/logos/tldr-white.png', height: double.infinity),
           ),
@@ -85,11 +85,7 @@ class AppShell extends StatelessWidget {
         aspectRatio: 1,
         child: IconButton(
           padding: .zero,
-          onPressed: () => route == destination
-              ? null
-              : actions.keys.contains(route)
-              ? context.pushReplacement(destination)
-              : context.push(destination),
+          onPressed: () => route == destination ? null : context.go(destination),
           icon: PhosphorIcon(icon),
         ),
       ),
@@ -101,6 +97,16 @@ class AppShell extends StatelessWidget {
     final route = context.uri.toString();
     bool admin = route.startsWith('/admin');
     if (route == '/') return SizedBox.shrink();
+    final channels = App.ctlr.auth.meta?.channels ?? ChannelSnippets.free;
+    final buttons = channels
+        .map(
+          (c) => c.button(
+            context,
+            desaturate: true,
+            onTap: (id) => context.go('/${admin ? 'admin/channel' : 'channel'}/$id'),
+          ),
+        )
+        .toList();
 
     return Container(
       color: context.colors.secondaryFixedDim,
@@ -112,15 +118,8 @@ class AppShell extends StatelessWidget {
           child: ListView.separated(
             scrollDirection: orientation == .portrait ? Axis.horizontal : Axis.vertical,
             separatorBuilder: (context, index) => const SizedBox.square(dimension: 8),
-            itemCount: ChannelSnippets.all.length,
-            itemBuilder: (context, index) {
-              return ChannelSnippets.buttons(
-                context,
-                desaturate: true,
-                onTap: (id) =>
-                    context.pushReplacement('/${admin ? 'admin/channel' : 'channel'}/$id'),
-              )[index];
-            },
+            itemCount: buttons.length,
+            itemBuilder: (context, index) => buttons[index],
           ),
         ),
       ),

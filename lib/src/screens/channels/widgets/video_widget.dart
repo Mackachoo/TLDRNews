@@ -12,7 +12,7 @@ class VideoWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () => context.push('/video/${video.id}'),
+      onTap: () => context.go('/video/${video.id}'),
       child: Column(
         spacing: 4,
         children: [
