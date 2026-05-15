@@ -6,15 +6,16 @@
     "indexes": "firebase/firestore.indexes.json"
   },
   "hosting": {
-    "source": ".",
+    "public": "build/web",
     "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
+      "firebase.json"
     ],
-    "frameworksBackend": {
-      "region": "europe-west1"
-    }
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
   },
   "flutter": {
     "platforms": {
