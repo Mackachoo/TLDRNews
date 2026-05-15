@@ -1,5 +1,6 @@
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class ConfigService {
   static final FirebaseRemoteConfig _remoteConfig = FirebaseRemoteConfig.instance;
@@ -26,12 +27,8 @@ class ConfigService {
         ),
       );
 
-      // Set default values
-      await _remoteConfig.setDefaults({
-        'youtube_api_key': '', // Empty default - will fail if not set in Firebase
-      });
+      await _remoteConfig.setDefaults({'youtube_api_key': ''});
 
-      // Fetch and activate latest remote config
       await _remoteConfig.fetchAndActivate();
       _initialized = true;
       debugPrint('ConfigService initialized successfully');
@@ -41,24 +38,22 @@ class ConfigService {
     }
   }
 
-  /// Get YouTube API key from Remote Config
+  /// Get YouTube API key. Prefers .env (bundled at build time); falls back to
+  /// Firebase Remote Config so the key can be rotated without shipping a new build.
   static String getYouTubeApiKey() {
-    try {
-      // On web, Remote Config is unavailable due to dart2js limitations
-      // Use hardcoded value from remoteconfig.template.json
-      if (kIsWeb) {
-        return 'AIzaSyC4PT5oxMmqAsB0Xw6UlXTdAIlZUCD0bb4';
-      }
+    final envKey = dotenv.env['YOUTUBE_API_KEY'];
+    if (envKey != null && envKey.isNotEmpty) return envKey;
 
-      final apiKey = _remoteConfig.getString('youtube_api_key');
-      if (apiKey.isEmpty) {
-        throw 'YouTube API key not configured in Firebase Remote Config';
-      }
-      return apiKey;
-    } catch (error) {
-      debugPrint('ConfigService.getYouTubeApiKey error: $error');
-      // Fallback to hardcoded value if error occurs
-      return 'AIzaSyC4PT5oxMmqAsB0Xw6UlXTdAIlZUCD0bb4';
+    if (kIsWeb) {
+      throw StateError('YouTube API key not configured. Set YOUTUBE_API_KEY in .env');
     }
+
+    final remoteKey = _remoteConfig.getString('youtube_api_key');
+    if (remoteKey.isNotEmpty) return remoteKey;
+
+    throw StateError(
+      'YouTube API key not configured. Set YOUTUBE_API_KEY in .env or '
+      'youtube_api_key in Firebase Remote Config.',
+    );
   }
 }
