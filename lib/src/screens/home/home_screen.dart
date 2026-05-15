@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:tldrnews_app/src/app.dart';
 import 'package:tldrnews_app/src/objects/channel/snippets.dart';
 import 'package:tldrnews_app/src/utils/extensions/context.dart';
 import 'package:tldrnews_app/src/widgets/responsive_grid.dart';
@@ -9,6 +10,11 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final channels = App.ctlr.auth.meta?.channels ?? ChannelSnippets.free;
+    final buttons = channels
+        .map((c) => c.button(context, onTap: (id) => context.go('/channel/$id')))
+        .toList();
+
     return Container(
       color: context.colors.surface,
       child: ListView(
@@ -32,10 +38,7 @@ class HomeScreen extends StatelessWidget {
                   physics: NeverScrollableScrollPhysics(),
                   minItemWidth: 120,
                   maxCrossAxisCount: 6,
-                  children: ChannelSnippets.buttons(
-                    context,
-                    onTap: (id) => context.go('/channel/$id'),
-                  ),
+                  children: buttons,
                 ),
               ],
             ),

@@ -8,17 +8,22 @@ import 'package:tldrnews_app/src/services/auth_service.dart';
 import 'package:tldrnews_app/src/services/firestore_service.dart';
 import 'package:tldrnews_app/src/utils/message.dart';
 
-class AccountController with ChangeNotifier {
+class AuthController with ChangeNotifier {
   static final AuthService _service = AuthService();
   late StreamSubscription<User?> authSub;
 
-  AccountController() {
+  AuthController() {
     authSub = AuthService.state.listen((User? user) async {
-      if (user != null) {
-        account = await FirestoreService.account.retrieve(user.uid);
-        meta = await FirestoreService.meta.retrieve(user.uid);
+      try {
+        if (user != null) {
+          account = await FirestoreService.account.retrieve(user.uid);
+          meta = await FirestoreService.meta.retrieve(user.uid);
+        }
+      } catch (e) {
+        debugPrint('AuthController: Failed to retrieve account data: $e');
+      } finally {
+        notifyListeners();
       }
-      notifyListeners();
     });
   }
 

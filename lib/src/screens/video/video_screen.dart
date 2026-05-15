@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_linkify/flutter_linkify.dart';
 import 'package:tldrnews_app/src/app.dart';
+import 'package:tldrnews_app/src/app_shell.dart';
 import 'package:tldrnews_app/src/objects/channel/channel.dart';
 import 'package:tldrnews_app/src/objects/content/youtube_video.dart';
+import 'package:tldrnews_app/src/utils/extensions/context.dart';
 import 'package:tldrnews_app/src/utils/extensions/core.dart';
 import 'package:tldrnews_app/src/utils/youtube_controller.dart';
 
@@ -36,7 +39,17 @@ class _VideoScreenState extends State<VideoScreen> {
   Widget build(BuildContext context) {
     final result = retrieveVideo();
 
-    if (result == null) {
+  (Channel, YoutubeVideo)? retrieveVideo() {
+    for (final channelCtlr in App.ctlr.channels.values) {
+      final video = channelCtlr.channel?.videos[widget.videoId];
+      if (video != null) return (channelCtlr.channel!, video);
+    }
+    return null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_result == null || _controller == null) {
       return Scaffold(
         appBar: AppBar(title: const Text('Unknown Video')),
         body: const Center(
@@ -76,20 +89,15 @@ class _VideoScreenState extends State<VideoScreen> {
                             style: Theme.of(context).textTheme.bodyMedium,
                           ),
                         ),
-                        SizedBox(height: 8),
-                        if (video.description != null) ...[
-                          const SizedBox(height: 8),
-                          Text(video.description!, style: Theme.of(context).textTheme.bodyMedium),
-                        ],
-                      ],
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
