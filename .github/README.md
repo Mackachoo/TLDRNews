@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="assets/logos/tldr-square.png" alt="TLDR News" width="120" />
+  <img src="https://github.com/Mackachoo/TLDRNews/blob/a91cde32a0dcadb48d4b18859626ea857ad9c5d5/assets/logos/tldr-white.png" alt="TLDR News" width="120" />
 
   # TLDR News
 
