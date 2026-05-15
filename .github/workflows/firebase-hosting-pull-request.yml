@@ -42,10 +42,13 @@ jobs:
             --dart-define=FIREBASE_IOS_API_KEY="$FIREBASE_IOS_API_KEY" \
             --dart-define=YOUTUBE_API_KEY="$YOUTUBE_API_KEY"
 
-      # Deploy to Firebase
+      # Deploy to Firebase. webframeworks experiment is required because
+      # firebase.json declares frameworksBackend (Flutter web framework mode).
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           projectId: tldr-news-229ac
           channelId: pr-preview
+        env:
+          FIREBASE_CLI_EXPERIMENTS: webframeworks
