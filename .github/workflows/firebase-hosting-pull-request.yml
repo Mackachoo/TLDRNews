@@ -22,6 +22,21 @@ jobs:
       # Get Flutter dependencies
       - run: flutter pub get
 
+      # Materialize .env from GitHub Secrets
+      - name: Create .env
+        env:
+          FIREBASE_WEB_API_KEY: ${{ secrets.FIREBASE_WEB_API_KEY }}
+          FIREBASE_ANDROID_API_KEY: ${{ secrets.FIREBASE_ANDROID_API_KEY }}
+          FIREBASE_IOS_API_KEY: ${{ secrets.FIREBASE_IOS_API_KEY }}
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+        run: |
+          cat > .env <<EOF
+          FIREBASE_WEB_API_KEY=${FIREBASE_WEB_API_KEY}
+          FIREBASE_ANDROID_API_KEY=${FIREBASE_ANDROID_API_KEY}
+          FIREBASE_IOS_API_KEY=${FIREBASE_IOS_API_KEY}
+          YOUTUBE_API_KEY=${YOUTUBE_API_KEY}
+          EOF
+
       # Build Flutter web
       - run: flutter build web
 
