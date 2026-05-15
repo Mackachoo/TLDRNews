@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://github.com/Mackachoo/TLDRNews/blob/a91cde32a0dcadb48d4b18859626ea857ad9c5d5/assets/logos/tldr-white.png" alt="TLDR News" width="120" />
+  <img src="../assets/logos/tldr-white.png" alt="TLDR News" width="120" />
 
   # TLDR News
 
@@ -7,7 +7,7 @@
 
   Built with Flutter, Firebase, and the YouTube Data API. One codebase, three targets: web, Android, iOS.
 
-  [Setup](docs/setup.md) · [Architecture](docs/architecture.md) · [Security](docs/security.md)
+  [Setup](../docs/setup.md) · [Architecture](../docs/architecture.md) · [Security](../docs/security.md)
 </div>
 
 ---
