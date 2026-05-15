@@ -33,7 +33,7 @@
 | Video            | `youtube_player_iframe`, `video_player`, `chewie`                      |
 | Serialisation    | `json_serializable` / `build_runner`                                   |
 | Icons            | `phosphor_flutter`                                                     |
-| Secrets          | `flutter_dotenv` + Firebase Remote Config                              |
+| Secrets          | `--dart-define` (build-time) + Firebase Remote Config (runtime)        |
 
 ## Quick start
 
@@ -43,7 +43,7 @@ cd TLDRNews-App
 cp .env.example .env          # then fill in your keys
 flutterfire configure         # regenerates google-services.json / GoogleService-Info.plist
 flutter pub get
-flutter run -d chrome
+flutter run -d chrome --dart-define-from-file=.env
 ```
 
 Full instructions, including Firebase project setup and platform tooling: **[docs/setup.md](docs/setup.md)**.
@@ -52,8 +52,8 @@ Full instructions, including Firebase project setup and platform tooling: **[doc
 
 ```
 lib/
-  main.dart              # entry point, loads .env then Firebase
-  firebase_options.dart  # platform Firebase config (API keys via dotenv)
+  main.dart              # entry point, initialises Firebase
+  firebase_options.dart  # platform Firebase config (API keys via --dart-define)
   src/
     app.dart             # MaterialApp + GoRouter
     app_controller.dart  # top-level AppCtlr (auth, settings, channels)
@@ -71,7 +71,7 @@ A guided tour of how data flows from Firestore through controllers into the UI: 
 
 ## Security model
 
-- API keys live in a gitignored `.env` (loaded by `flutter_dotenv`) plus Firebase Remote Config for runtime rotation.
+- API keys live in a gitignored `.env` consumed at build time via `--dart-define-from-file=.env`, never bundled as an asset. Production rotation goes through Firebase Remote Config.
 - Platform Firebase config files (`google-services.json`, `GoogleService-Info.plist`) are gitignored and regenerated locally with `flutterfire configure`.
 - Firestore rules enforce per-user document access and an admin role gate.
 - Production safety relies on **API-key restrictions in Google Cloud Console** — referrers for web, package + SHA-1 for Android, bundle ID for iOS.

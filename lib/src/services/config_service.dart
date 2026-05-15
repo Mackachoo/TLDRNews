@@ -5,6 +5,9 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 class ConfigService {
   static final FirebaseRemoteConfig _remoteConfig = FirebaseRemoteConfig.instance;
 
+  /// Compile-time fallback for the YouTube API key.
+  static const String _youtubeApiKeyDefine = String.fromEnvironment('YOUTUBE_API_KEY');
+
   static bool _initialized = false;
 
   /// Initialize Remote Config with default values
@@ -38,22 +41,32 @@ class ConfigService {
     }
   }
 
-  /// Get YouTube API key. Prefers .env (bundled at build time); falls back to
-  /// Firebase Remote Config so the key can be rotated without shipping a new build.
+  /// Get YouTube API key. Resolution order:
+  ///   1. `.env` (loaded by flutter_dotenv) — local dev convenience.
+  ///   2. `--dart-define=YOUTUBE_API_KEY=...` (compile-time) — CI builds.
+  ///   3. Firebase Remote Config — production rotation on mobile.
   static String getYouTubeApiKey() {
-    final envKey = dotenv.env['YOUTUBE_API_KEY'];
-    if (envKey != null && envKey.isNotEmpty) return envKey;
+    try {
+      final fromEnv = dotenv.env['YOUTUBE_API_KEY'];
+      if (fromEnv != null && fromEnv.isNotEmpty) return fromEnv;
+    } catch (_) {
+      // dotenv not initialised; fall through.
+    }
+
+    if (_youtubeApiKeyDefine.isNotEmpty) return _youtubeApiKeyDefine;
 
     if (kIsWeb) {
-      throw StateError('YouTube API key not configured. Set YOUTUBE_API_KEY in .env');
+      throw StateError(
+        'YOUTUBE_API_KEY not set. Put it in .env or pass --dart-define=YOUTUBE_API_KEY=...',
+      );
     }
 
     final remoteKey = _remoteConfig.getString('youtube_api_key');
     if (remoteKey.isNotEmpty) return remoteKey;
 
     throw StateError(
-      'YouTube API key not configured. Set YOUTUBE_API_KEY in .env or '
-      'youtube_api_key in Firebase Remote Config.',
+      'YouTube API key not configured. Set it in .env, pass --dart-define=YOUTUBE_API_KEY=..., '
+      'or set youtube_api_key in Firebase Remote Config.',
     );
   }
 }

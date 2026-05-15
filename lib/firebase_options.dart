@@ -3,6 +3,10 @@ import 'package:flutter/foundation.dart' show defaultTargetPlatform, kIsWeb, Tar
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 /// Default [FirebaseOptions] for use with your Firebase apps.
+///
+/// API keys are resolved at runtime in priority order:
+///   1. `.env` (loaded by `flutter_dotenv` in [main]) — preferred for local dev.
+///   2. `--dart-define=KEY=...` (compile-time) — used by CI builds.
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
@@ -33,16 +37,23 @@ class DefaultFirebaseOptions {
     }
   }
 
-  static String _requireEnv(String key) {
-    final value = dotenv.env[key];
-    if (value == null || value.isEmpty) {
-      throw StateError('Missing $key in .env — see .env.example');
+  // Compile-time fallbacks, used when .env isn't loaded or is missing the key.
+  static const _webApiKey = String.fromEnvironment('FIREBASE_WEB_API_KEY');
+  static const _androidApiKey = String.fromEnvironment('FIREBASE_ANDROID_API_KEY');
+  static const _iosApiKey = String.fromEnvironment('FIREBASE_IOS_API_KEY');
+
+  static String _resolve(String key, String compileTime) {
+    try {
+      final v = dotenv.env[key];
+      if (v != null && v.isNotEmpty) return v;
+    } catch (_) {
+      // dotenv not initialised; fall through.
     }
-    return value;
+    return compileTime;
   }
 
   static FirebaseOptions get web => FirebaseOptions(
-    apiKey: _requireEnv('FIREBASE_WEB_API_KEY'),
+    apiKey: _resolve('FIREBASE_WEB_API_KEY', _webApiKey),
     appId: '1:628191602084:web:c66559dbbf91c2d9d64d31',
     messagingSenderId: '628191602084',
     projectId: 'tldr-news-229ac',
@@ -52,7 +63,7 @@ class DefaultFirebaseOptions {
   );
 
   static FirebaseOptions get android => FirebaseOptions(
-    apiKey: _requireEnv('FIREBASE_ANDROID_API_KEY'),
+    apiKey: _resolve('FIREBASE_ANDROID_API_KEY', _androidApiKey),
     appId: '1:628191602084:android:1e26641b7bbe63f3d64d31',
     messagingSenderId: '628191602084',
     projectId: 'tldr-news-229ac',
@@ -60,7 +71,7 @@ class DefaultFirebaseOptions {
   );
 
   static FirebaseOptions get ios => FirebaseOptions(
-    apiKey: _requireEnv('FIREBASE_IOS_API_KEY'),
+    apiKey: _resolve('FIREBASE_IOS_API_KEY', _iosApiKey),
     appId: '1:628191602084:ios:ffe8b725b37c17d6d64d31',
     messagingSenderId: '628191602084',
     projectId: 'tldr-news-229ac',

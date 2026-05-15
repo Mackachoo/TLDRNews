@@ -22,23 +22,25 @@ jobs:
       # Get Flutter dependencies
       - run: flutter pub get
 
-      # Materialize .env from GitHub Secrets
-      - name: Create .env
+      # `.env` is declared as a Flutter asset; CI creates an empty placeholder
+      # so the bundle resolves. Real values come from --dart-define below.
+      - name: Create empty .env placeholder
+        run: touch .env
+
+      # Build Flutter web. Secrets are injected as compile-time constants via
+      # --dart-define, so they never touch the filesystem on the runner.
+      - name: Build Flutter web
         env:
           FIREBASE_WEB_API_KEY: ${{ secrets.FIREBASE_WEB_API_KEY }}
           FIREBASE_ANDROID_API_KEY: ${{ secrets.FIREBASE_ANDROID_API_KEY }}
           FIREBASE_IOS_API_KEY: ${{ secrets.FIREBASE_IOS_API_KEY }}
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
         run: |
-          cat > .env <<EOF
-          FIREBASE_WEB_API_KEY=${FIREBASE_WEB_API_KEY}
-          FIREBASE_ANDROID_API_KEY=${FIREBASE_ANDROID_API_KEY}
-          FIREBASE_IOS_API_KEY=${FIREBASE_IOS_API_KEY}
-          YOUTUBE_API_KEY=${YOUTUBE_API_KEY}
-          EOF
-
-      # Build Flutter web
-      - run: flutter build web
+          flutter build web \
+            --dart-define=FIREBASE_WEB_API_KEY="$FIREBASE_WEB_API_KEY" \
+            --dart-define=FIREBASE_ANDROID_API_KEY="$FIREBASE_ANDROID_API_KEY" \
+            --dart-define=FIREBASE_IOS_API_KEY="$FIREBASE_IOS_API_KEY" \
+            --dart-define=YOUTUBE_API_KEY="$YOUTUBE_API_KEY"
 
       # Deploy to Firebase
       - uses: FirebaseExtended/action-hosting-deploy@v0

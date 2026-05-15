@@ -13,7 +13,9 @@ Every Flutter app ships its config to end users; anyone can extract strings from
 - `FIREBASE_WEB_API_KEY`, `FIREBASE_ANDROID_API_KEY`, `FIREBASE_IOS_API_KEY`
 - `YOUTUBE_API_KEY`
 
-Loaded at startup via `flutter_dotenv` ([lib/main.dart](../lib/main.dart)), read inside [lib/firebase_options.dart](../lib/firebase_options.dart) and [lib/src/services/config_service.dart](../lib/src/services/config_service.dart). A `_requireEnv` helper throws a `StateError` on missing values so a misconfigured build fails fast rather than silently using a stale fallback.
+Consumed at **build time** via `--dart-define-from-file=.env` (locally) or per-key `--dart-define=KEY=...` (CI). The Dart code reads them as compile-time constants via `String.fromEnvironment(...)` in [lib/firebase_options.dart](../lib/firebase_options.dart) and [lib/src/services/config_service.dart](../lib/src/services/config_service.dart).
+
+`.env` is **not** loaded at runtime and **not** bundled as a Flutter asset — earlier iterations of this repo used `flutter_dotenv`, which ships `.env` to `build/web/assets/.env` (publicly fetchable). Compile-time defines avoid that footgun. The values still end up in the minified JS / native binary, so GCP key restrictions remain the real safeguard (see below).
 
 ### What lives in Firebase Remote Config
 
@@ -31,12 +33,12 @@ The YouTube API key has a secondary home in Remote Config (`youtube_api_key`). O
 
 Before flipping the repo public — or shipping any production build — set these in [GCP Credentials](https://console.cloud.google.com/apis/credentials):
 
-| Key                        | Application restriction                                                          | API restriction              |
-| -------------------------- | -------------------------------------------------------------------------------- | ---------------------------- |
-| `FIREBASE_WEB_API_KEY`     | HTTP referrers: production domain + `localhost:*`                                | Identity Toolkit, Firebase, Firestore, Identity Platform, Token Service, Secure Token |
-| `FIREBASE_ANDROID_API_KEY` | Android apps: `com.tldrnews.app` + debug + release SHA-1                         | Same set as web              |
-| `FIREBASE_IOS_API_KEY`     | iOS apps: bundle ID `com.tldrnews.app`                                           | Same set as web              |
-| `YOUTUBE_API_KEY`          | Whichever platform calls it (admin tooling)                                      | **YouTube Data API v3 only** |
+| Key                        | Application restriction                                  | API restriction                                                                         |
+| -------------------------- | -------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `FIREBASE_WEB_API_KEY`     | HTTP referrers: production domain + `localhost:*`        | Identity Toolkit, Firebase, Firestore, Identity Platform, Token Service, Secure Token   |
+| `FIREBASE_ANDROID_API_KEY` | Android apps: `com.tldrnews.app` + debug + release SHA-1 | Same set as web                                                                         |
+| `FIREBASE_IOS_API_KEY`     | iOS apps: bundle ID `com.tldrnews.app`                   | Same set as web                                                                         |
+| `YOUTUBE_API_KEY`          | Whichever platform calls it (admin tooling)              | **YouTube Data API v3 only**                                                            |
 
 The YouTube key is the most dangerous — quota is billable. Restrict it tightly and monitor usage.
 
