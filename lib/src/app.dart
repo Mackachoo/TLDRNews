@@ -44,9 +44,14 @@ class App extends StatelessWidget {
       // debugLogDiagnostics: true,
       refreshListenable: ctlr.auth,
       redirect: (context, state) {
-        if (!state.uri.path.startsWith('/admin')) return null;
-        if (!ctlr.auth.resolved) return null;
-        return ctlr.auth.meta?.admin == true ? null : '/';
+        if (state.uri.path.startsWith('/admin')) {
+          if (!ctlr.auth.resolved) return '/';
+          if (ctlr.auth.meta?.admin != true) return '/';
+        } else if (state.uri.path.contains('party')) {
+          if (!ctlr.auth.resolved) return '/';
+          if (ctlr.auth.meta?.party != true) return '/';
+        }
+        return null;
       },
       errorBuilder: (context, state) => ErrorScreen(state.error),
       routes: [

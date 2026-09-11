@@ -12,7 +12,7 @@ class Meta {
 
   List<ChannelSnippet> get channels {
     List<ChannelSnippet> channels = [];
-    // if (party) channels.add(ChannelSnippets.party);
+    if (party) channels.add(ChannelSnippets.party);
     channels.addAll(ChannelSnippets.free);
     return channels;
   }

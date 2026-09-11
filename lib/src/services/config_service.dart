@@ -10,8 +10,9 @@ class ConfigService {
 
   static bool _initialized = false;
 
-  /// Initialize Remote Config with default values
-  /// Call this once during app startup
+  /// Initialize Remote Config with default values.
+  /// Call this once during app startup. Never throws: Remote Config is only a
+  /// fallback source for the YouTube API key, so the app still runs without it.
   static Future<void> initialize() async {
     if (_initialized) return;
 
@@ -36,8 +37,10 @@ class ConfigService {
       _initialized = true;
       debugPrint('ConfigService initialized successfully');
     } catch (error) {
+      // Remote Config is optional: an offline start or an expired Firebase API
+      // key must not block startup. Leave _initialized false so a later call can
+      // retry, and let getYouTubeApiKey() fall back to .env / --dart-define.
       debugPrint('ConfigService initialization error: $error');
-      rethrow;
     }
   }
 

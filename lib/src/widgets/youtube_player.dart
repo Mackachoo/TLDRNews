@@ -1,11 +1,16 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:tldrnews_app/src/objects/content/youtube_video.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 /// Plays a [YoutubeVideo] with a 16:9 surface and built-in controls.
 ///
-/// Fullscreen is handled internally by the player, so no scaffold or builder
-/// wrapper is needed around it.
+/// Fullscreen is handled internally by the player (triggered by its own
+/// fullscreen button, or automatically when the device rotates to
+/// landscape). On mobile this widget additionally locks the screen to
+/// landscape and hides system UI while fullscreen is active, so the video
+/// truly fills the screen, and restores both when fullscreen ends.
 class YoutubeVideoPlayer extends StatefulWidget {
   const YoutubeVideoPlayer(this.video, {super.key});
 
@@ -28,7 +33,33 @@ class _YoutubeVideoPlayerState extends State<YoutubeVideoPlayer> {
   );
 
   @override
+  void initState() {
+    super.initState();
+    if (!kIsWeb) _ctlr.setFullScreenListener(_onFullscreenChanged);
+  }
+
+  void _onFullscreenChanged(bool isFullscreen) {
+    if (isFullscreen) {
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.landscapeLeft,
+        DeviceOrientation.landscapeRight,
+      ]);
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    } else {
+      _restoreOrientation();
+    }
+  }
+
+  void _restoreOrientation() {
+    SystemChrome.setPreferredOrientations(DeviceOrientation.values);
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  }
+
+  @override
   void dispose() {
+    // In case the screen is left mid-fullscreen (e.g. by navigating away),
+    // make sure the rest of the app doesn't stay locked to landscape.
+    if (!kIsWeb) _restoreOrientation();
     _ctlr.close();
     super.dispose();
   }
