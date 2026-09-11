@@ -1,6 +1,5 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:go_router/go_router.dart';
-import 'package:hugeicons/hugeicons.dart';
 import 'package:tldrnews_app/src/objects/channel/snippets.dart';
 import 'package:tldrnews_app/src/utils/extensions/context.dart';
 import 'package:tldrnews_app/src/widgets/responsive_grid.dart';
@@ -10,7 +9,7 @@ class AdminScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return Material(
       color: Theme.of(context).colorScheme.surface,
       child: ListView(
         padding: .all(16),
@@ -18,10 +17,10 @@ class AdminScreen extends StatelessWidget {
           Text('Admin Panel', style: Theme.of(context).textTheme.headlineMedium),
           SizedBox(height: 16),
           ListTile(
-            leading: const HugeIcon(icon: HugeIcons.strokeRoundedUserSettings01),
+            leading: const Icon(Icons.manage_accounts),
             title: Text('Admins'),
             subtitle: Text('View and manage admins'),
-            trailing: const HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01),
+            trailing: const Icon(Icons.chevron_right),
             onTap: () => context.push('/admin/users'),
           ),
           SizedBox(height: 16),
@@ -42,7 +41,7 @@ class AdminScreen extends StatelessWidget {
                       .map(
                         (c) => IconButton(
                           padding: .zero,
-                          onPressed: () => context.push('/admin/channel/${c.id}'),
+                          onPressed: () => context.go('/admin/channel/${c.id}'),
                           icon: c.icon,
                         ),
                       )

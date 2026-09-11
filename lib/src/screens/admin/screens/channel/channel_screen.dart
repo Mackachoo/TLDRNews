@@ -1,5 +1,5 @@
 import 'package:material_ui/material_ui.dart';
-import 'package:hugeicons/hugeicons.dart';
+import 'package:tldrnews_app/src/objects/content/_content.dart';
 import 'package:tldrnews_app/src/objects/content/series.dart';
 import 'package:tldrnews_app/src/objects/content/youtube_video.dart';
 import 'package:tldrnews_app/src/screens/admin/screens/channel/channel_controller.dart';
@@ -78,24 +78,24 @@ class _AdminChannelScreenState extends State<AdminChannelScreen> {
 
   Widget crmActionBar() {
     return ListTile(
-      leading: const HugeIcon(icon: HugeIcons.strokeRoundedCloudDownload),
+      leading: const Icon(Icons.cloud_download),
       title: const Text('Youtube Content'),
       subtitle: const Text('Fetch recent videos and playlists from YouTube'),
       trailing: ctlr.isFetching
           ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
           : ElevatedButton.icon(
               onPressed: () => ctlr.fetchChannelConntentFromYoutube(context),
-              icon: const HugeIcon(icon: HugeIcons.strokeRoundedDownload01),
+              icon: const Icon(Icons.download),
               label: const Text('Fetch'),
             ),
     );
   }
 
   Widget saveTile() {
-    return Container(
+    return Material(
       color: ctlr.editted ? context.colors.primaryContainer : context.colors.surfaceContainerLow,
       child: ListTile(
-        leading: const HugeIcon(icon: HugeIcons.strokeRoundedFloppyDisk),
+        leading: const Icon(Icons.save),
         title: Text('Save Changes', style: Theme.of(context).textTheme.bodyMedium),
         subtitle: Text(
           'Persist changes to Firestore',
@@ -110,10 +110,10 @@ class _AdminChannelScreenState extends State<AdminChannelScreen> {
   }
 
   Widget deleteModeTile() {
-    return Container(
+    return Material(
       color: deleteMode ? context.colors.errorContainer : context.colors.surfaceContainerLow,
       child: ListTile(
-        leading: const HugeIcon(icon: HugeIcons.strokeRoundedFloppyDisk),
+        leading: const Icon(Icons.save),
         title: Text('Delete Mode', style: Theme.of(context).textTheme.bodyMedium),
         subtitle: Text(
           'Enable deletion of videos and series from the channel',
@@ -127,6 +127,13 @@ class _AdminChannelScreenState extends State<AdminChannelScreen> {
     );
   }
 
+  /// Newest first, undated content last.
+  static int _byPublishedDesc(Content a, Content b) {
+    if (a.published == null) return b.published == null ? 0 : 1;
+    if (b.published == null) return -1;
+    return b.published!.compareTo(a.published!);
+  }
+
   // * Videos Card ------------------------------------------------------------
 
   bool videoCardExpanded = true;
@@ -136,23 +143,19 @@ class _AdminChannelScreenState extends State<AdminChannelScreen> {
       children: [
         ListTile(
           title: Text('Videos', style: context.textTheme.headlineSmall),
-          trailing: HugeIcon(
-            icon: !videoCardExpanded
-                ? HugeIcons.strokeRoundedArrowUp01
-                : HugeIcons.strokeRoundedArrowDown01,
-          ),
+          trailing: Icon(!videoCardExpanded ? Icons.expand_less : Icons.expand_more),
           onTap: () => setState(() => videoCardExpanded = !videoCardExpanded),
         ),
         if (videoCardExpanded)
           ListTile(
-            leading: const HugeIcon(icon: HugeIcons.strokeRoundedAdd01),
+            leading: const Icon(Icons.add),
             title: const Text('Add new video'),
             onTap: () => ContentEditor.video(context, ctlr),
           ),
         if (videoCardExpanded)
-          ...?(ctlr.channel?.videos.values.toList()
-                ?..sort((a, b) => b.published!.compareTo(a.published!)))
-              ?.map((video) => videoTile(video)),
+          ...?(ctlr.channel?.videos.values.toList()?..sort(_byPublishedDesc))?.map(
+            (video) => videoTile(video),
+          ),
         if (videoCardExpanded && ctlr.channel?.videos.isEmpty == true)
           Padding(
             padding: .all(16),
@@ -168,9 +171,7 @@ class _AdminChannelScreenState extends State<AdminChannelScreen> {
         ? Image.network(video.imageUrl!, width: 100, fit: BoxFit.cover)
         : null,
     title: Text(video.title, style: Theme.of(context).textTheme.bodyMedium),
-    trailing: HugeIcon(
-      icon: deleteMode ? HugeIcons.strokeRoundedDelete02 : HugeIcons.strokeRoundedArrowRight01,
-    ),
+    trailing: Icon(deleteMode ? Icons.delete : Icons.chevron_right),
     onTap: () => deleteMode ? ctlr.removeVideo(video) : ContentEditor.video(context, ctlr, video),
   );
 
@@ -183,24 +184,20 @@ class _AdminChannelScreenState extends State<AdminChannelScreen> {
       children: [
         ListTile(
           title: Text('Series', style: context.textTheme.headlineSmall),
-          trailing: HugeIcon(
-            icon: seriesCardExpanded
-                ? HugeIcons.strokeRoundedArrowUp01
-                : HugeIcons.strokeRoundedArrowDown01,
-          ),
+          trailing: Icon(seriesCardExpanded ? Icons.expand_less : Icons.expand_more),
           onTap: () => setState(() => seriesCardExpanded = !seriesCardExpanded),
         ),
         if (seriesCardExpanded)
           ListTile(
-            leading: const HugeIcon(icon: HugeIcons.strokeRoundedAdd01),
+            leading: const Icon(Icons.add),
             title: const Text('Add new series'),
             onTap: () => ContentEditor.series(context, ctlr),
           ),
 
         if (seriesCardExpanded)
-          ...?(ctlr.channel?.series.values.toList()
-                ?..sort((a, b) => b.published!.compareTo(a.published!)))
-              ?.map((series) => seriesTile(series)),
+          ...?(ctlr.channel?.series.values.toList()?..sort(_byPublishedDesc))?.map(
+            (series) => seriesTile(series),
+          ),
         if (seriesCardExpanded && ctlr.channel?.series.isEmpty == true)
           Padding(
             padding: .all(16),
@@ -216,9 +213,7 @@ class _AdminChannelScreenState extends State<AdminChannelScreen> {
         ? Image.network(series.imageUrl!, width: 100, fit: BoxFit.cover)
         : null,
     title: Text(series.title, style: Theme.of(context).textTheme.bodyMedium),
-    trailing: HugeIcon(
-      icon: deleteMode ? HugeIcons.strokeRoundedDelete02 : HugeIcons.strokeRoundedArrowRight01,
-    ),
+    trailing: Icon(deleteMode ? Icons.delete : Icons.chevron_right),
     onTap: () =>
         deleteMode ? ctlr.removeSeries(series) : ContentEditor.series(context, ctlr, series),
   );

@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:go_router/go_router.dart';
-import 'package:hugeicons/hugeicons.dart';
 import 'package:tldrnews_app/src/app.dart';
 import 'package:tldrnews_app/src/objects/channel/snippets.dart';
 import 'package:tldrnews_app/src/utils/extensions/context.dart';
@@ -34,11 +33,8 @@ class AppShell extends StatelessWidget {
 
   static AppBar appBar(BuildContext context) {
     final route = GoRouterState.of(context).uri.toString();
-    final title = route.contains('/channel/')
-        ? ChannelSnippets.byId(route.split('/channel/').last)?.name ?? 'TLDR News'
-        : 'TLDR News';
-
-    bool showReturn = route != '/' && !route.startsWith('/channel/');
+    final title =
+        '${route.contains('/channel/') ? ChannelSnippets.byId(route.split('/channel/').last)?.name ?? 'TLDR News' : 'TLDR News'}${route.startsWith('/admin') ? ' (Admin)' : ''}';
 
     return AppBar(
       backgroundColor: context.colors.secondaryFixedDim,
@@ -50,10 +46,8 @@ class AppShell extends StatelessWidget {
           aspectRatio: 1,
           child: IconButton(
             padding: .symmetric(horizontal: 8, vertical: 0),
-            onPressed: () => showReturn ? context.forcePop() : context.go('/'),
-            icon: showReturn && !kIsWeb
-                ? const HugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01, strokeWidth: 2.5)
-                : Image.asset('assets/logos/tldr-white.png', height: double.infinity),
+            onPressed: () => context.go('/'),
+            icon: Image.asset('assets/logos/tldr-white.png', height: double.infinity),
           ),
         ),
       ),
@@ -65,16 +59,16 @@ class AppShell extends StatelessWidget {
     );
   }
 
-  static Map<String, List<List<dynamic>>> get actions => {
-    if (App.ctlr.auth.meta?.admin == true) '/admin': HugeIcons.strokeRoundedShieldUser,
-    '/account': HugeIcons.strokeRoundedUserCircle,
-    '/settings': HugeIcons.strokeRoundedSettings01,
+  static Map<String, IconData> get actions => {
+    if (App.ctlr.auth.meta?.admin == true) '/admin': Icons.admin_panel_settings,
+    '/account': Icons.account_circle,
+    '/settings': Icons.settings,
   };
 
   static SizedBox actionButton(
     BuildContext context, {
     required String destination,
-    required List<List<dynamic>> icon,
+    required IconData icon,
   }) {
     final route = GoRouterState.of(context).uri.toString();
 
@@ -85,7 +79,7 @@ class AppShell extends StatelessWidget {
         child: IconButton(
           padding: .zero,
           onPressed: () => route == destination ? null : context.go(destination),
-          icon: HugeIcon(icon: icon, strokeWidth: 2.5),
+          icon: Icon(icon),
         ),
       ),
     );

@@ -19,11 +19,16 @@ class ChannelIcon extends StatelessWidget {
               ? DecorationImage(image: AssetImage(background!), fit: BoxFit.cover)
               : null,
         ),
-        child: Row(
+        child: Column(
+          mainAxisAlignment: .center,
           children: [
-            Spacer(flex: 10),
-            Expanded(flex: 80, child: Image.asset(icon)),
-            Spacer(flex: 10),
+            Row(
+              children: [
+                Spacer(flex: 10),
+                Expanded(flex: 80, child: Image.asset(icon)),
+                Spacer(flex: 10),
+              ],
+            ),
           ],
         ),
       ),
@@ -58,7 +63,7 @@ class ChannelIcon extends StatelessWidget {
   factory ChannelIcon.eu() =>
       ChannelIcon(icon: 'assets/logos/tldr-eu.png', color: Color(0xFF1E4C94));
   factory ChannelIcon.business() =>
-      ChannelIcon(icon: 'assets/logos/tldr-white.png', color: Color(0xFF4EB17D));
+      ChannelIcon(icon: 'assets/logos/tldr-business.png', color: Color(0xFF4EB17D));
   factory ChannelIcon.party() =>
       ChannelIcon(icon: 'assets/logos/tldr-party.png', color: Color(0xFFE1E5EA));
   factory ChannelIcon.podcasts() => ChannelIcon(

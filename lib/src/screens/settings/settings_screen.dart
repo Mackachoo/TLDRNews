@@ -1,5 +1,4 @@
 import 'package:material_ui/material_ui.dart';
-import 'package:hugeicons/hugeicons.dart';
 import 'package:tldrnews_app/src/app.dart';
 import 'package:tldrnews_app/src/utils/extensions/context.dart';
 import 'package:tldrnews_app/src/utils/extensions/core.dart';
@@ -75,7 +74,7 @@ class SettingsScreen extends StatelessWidget {
                 mainAxisAlignment: .spaceBetween,
                 children: [
                   Text(App.ctlr.settings.appearance.theme.toString().split('.').last.capitalize()),
-                  const HugeIcon(icon: HugeIcons.strokeRoundedArrowDown01),
+                  const Icon(Icons.expand_more),
                 ],
               ),
             ),

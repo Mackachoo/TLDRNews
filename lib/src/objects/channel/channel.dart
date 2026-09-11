@@ -23,6 +23,17 @@ class Channel extends ChannelSnippet {
   final Map<String, YoutubeVideo> videos;
   final Map<String, Series> series;
 
+  /// Deep copy. Callers that mutate a [Channel] must work on one of these —
+  /// [ChannelService] hands out a shared cached instance.
+  Channel copy() => Channel(
+    id: id,
+    name: name,
+    channelUrl: channelUrl,
+    description: description,
+    videos: videos.map((k, v) => MapEntry(k, v.copy())),
+    series: series.map((k, v) => MapEntry(k, v.copy())),
+  );
+
   factory Channel.fromJson(Map<String, dynamic> json) => _$ChannelFromJson(json);
 
   Map<String, dynamic> toJson() {

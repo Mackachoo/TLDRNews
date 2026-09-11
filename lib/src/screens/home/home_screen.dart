@@ -22,7 +22,10 @@ class HomeScreen extends StatelessWidget {
         children: [
           Text('Welcome to TLDR News!', style: Theme.of(context).textTheme.headlineMedium),
           Text(
-            'Making news accessible for everyone.',
+            '''TLDR News is an independent online media group that focuses on making digital content about news and current affairs from all over the world.
+
+We pride ourselves on our accessible, non-partisan, and impartial coverage of current events – aimed to help young people better understand the world around them, and form their own opinions.
+''',
             style: Theme.of(context).textTheme.bodyLarge,
           ),
           SizedBox(height: 16),

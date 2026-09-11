@@ -21,6 +21,15 @@ class YoutubeVideo extends Video {
   @JsonKey(includeFromJson: false)
   String get videoUrl => overrideUrl ?? 'https://www.youtube.com/watch?v=$id';
 
+  YoutubeVideo copy() => YoutubeVideo(
+    id: id,
+    title: title,
+    published: published,
+    description: description,
+    imageUrl: imageUrl,
+    overrideUrl: overrideUrl,
+  );
+
   @override
   Map<String, dynamic> toJson() => _$YoutubeVideoToJson(this);
   factory YoutubeVideo.fromJson(Map<String, dynamic> json) => _$YoutubeVideoFromJson(json);

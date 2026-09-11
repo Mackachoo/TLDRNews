@@ -74,7 +74,7 @@ class ChannelService extends FirestoreCore {
 
     try {
       await channels.doc(updates.id).update(updates.toJson());
-      updateCached<Channel>(updates.id, updates);
+      updateCached<Channel>(updates.id, updates.copy());
       debugPrint('Channel:\t${updates.id} updated');
       return true;
     } catch (error) {
@@ -86,7 +86,7 @@ class ChannelService extends FirestoreCore {
   Future<bool?> set(Channel updates, {bool merge = false}) async {
     try {
       await channels.doc(updates.id).set(updates.toJson(), SetOptions(merge: merge));
-      updateCached<Channel>(updates.id, updates);
+      updateCached<Channel>(updates.id, updates.copy());
       debugPrint('Channel:\t${updates.id} set');
       return true;
     } catch (error) {

@@ -4,7 +4,7 @@ import 'package:tldrnews_app/src/objects/channel/snippets.dart';
 import 'package:tldrnews_app/src/objects/content/series.dart';
 import 'package:tldrnews_app/src/objects/content/youtube_video.dart';
 import 'package:tldrnews_app/src/services/firestore_service.dart';
-import 'package:tldrnews_app/src/services/youtube_service.dart';
+import 'package:tldrnews_app/src/services/youtube/youtube_service.dart';
 import 'package:tldrnews_app/src/utils/message.dart';
 
 class AdminChannelController extends ChangeNotifier {
@@ -22,8 +22,8 @@ class AdminChannelController extends ChangeNotifier {
 
   AdminChannelController(this.cid) {
     FirestoreService.channel.retrieve(cid).then((retrieved) {
-      original = retrieved;
-      channel = retrieved;
+      original = retrieved?.copy();
+      channel = retrieved?.copy();
       loading = false;
       notifyListeners();
     });
@@ -33,6 +33,7 @@ class AdminChannelController extends ChangeNotifier {
     if (channel == null) return;
     try {
       await FirestoreService.channel.update(channel!);
+      original = channel!.copy();
       if (context.mounted) Message.success(context, 'Channel saved successfully!');
 
       notifyListeners();

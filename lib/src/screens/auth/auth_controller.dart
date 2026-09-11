@@ -18,14 +18,22 @@ class AuthController with ChangeNotifier {
         if (user != null) {
           account = await FirestoreService.account.retrieve(user.uid);
           meta = await FirestoreService.meta.retrieve(user.uid);
+        } else {
+          account = null;
+          meta = null;
         }
       } catch (e) {
         debugPrint('AuthController: Failed to retrieve account data: $e');
       } finally {
+        resolved = true;
         notifyListeners();
       }
     });
   }
+
+  /// False until the first auth state has been read. Route guards must wait for
+  /// this, otherwise a deep link is judged against a signed-out state.
+  bool resolved = false;
 
   UserCredential? credential;
   User? get user => AuthService.currentUser;

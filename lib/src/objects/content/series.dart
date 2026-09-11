@@ -17,6 +17,15 @@ class Series extends Content {
     this.videoIds = const [],
   });
 
+  Series copy() => Series(
+    id: id,
+    title: title,
+    published: published,
+    description: description,
+    imageUrl: imageUrl,
+    videoIds: List.of(videoIds),
+  );
+
   @override
   Map<String, dynamic> toJson() => _$SeriesToJson(this);
   factory Series.fromJson(Map<String, dynamic> json) => _$SeriesFromJson(json);

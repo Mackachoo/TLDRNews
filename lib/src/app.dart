@@ -42,9 +42,11 @@ class App extends StatelessWidget {
     return GoRouter(
       initialLocation: '/',
       // debugLogDiagnostics: true,
+      refreshListenable: ctlr.auth,
       redirect: (context, state) {
-        if (state.uri.path.startsWith('/admin') && ctlr.auth.meta?.admin != true) return '/';
-        return null;
+        if (!state.uri.path.startsWith('/admin')) return null;
+        if (!ctlr.auth.resolved) return null;
+        return ctlr.auth.meta?.admin == true ? null : '/';
       },
       errorBuilder: (context, state) => ErrorScreen(state.error),
       routes: [
@@ -54,40 +56,53 @@ class App extends StatelessWidget {
             GoRoute(
               path: '/',
               name: 'home',
-              pageBuilder: (context, state) => NoTransitionPage(child: const HomeScreen()),
+              pageBuilder: (context, state) =>
+                  NoTransitionPage(key: state.pageKey, child: const HomeScreen()),
             ),
             GoRoute(
               path: '/settings',
               name: 'settings',
-              pageBuilder: (context, state) => NoTransitionPage(child: const SettingsScreen()),
+              pageBuilder: (context, state) =>
+                  NoTransitionPage(key: state.pageKey, child: const SettingsScreen()),
             ),
             GoRoute(
               path: '/account',
               name: 'account',
-              pageBuilder: (context, state) => NoTransitionPage(child: const AuthScreen()),
+              pageBuilder: (context, state) =>
+                  NoTransitionPage(key: state.pageKey, child: const AuthScreen()),
             ),
             GoRoute(
               path: '/channel/:id',
               name: 'channel',
-              pageBuilder: (context, state) =>
-                  NoTransitionPage(child: ChannelScreen(cid: state.pathParameters['id']!)),
+              pageBuilder: (context, state) => NoTransitionPage(
+                key: state.pageKey,
+                child: ChannelScreen(cid: state.pathParameters['id']!),
+              ),
             ),
             GoRoute(
               path: '/admin',
               name: 'admin',
-              pageBuilder: (context, state) => NoTransitionPage(child: const AdminScreen()),
+              pageBuilder: (context, state) =>
+                  NoTransitionPage(key: state.pageKey, child: const AdminScreen()),
               routes: [
                 GoRoute(
                   path: 'users',
                   name: 'admin-users',
                   pageBuilder: (context, state) =>
-                      NoTransitionPage(child: const AdminUsersScreen()),
+                      NoTransitionPage(key: state.pageKey, child: const AdminUsersScreen()),
                 ),
                 GoRoute(
                   path: 'channel/:id',
                   name: 'admin-channel',
-                  pageBuilder: (context, state) =>
-                      NoTransitionPage(child: AdminChannelScreen(cid: state.pathParameters['id']!)),
+                  pageBuilder: (context, state) => NoTransitionPage(
+                    key: state.pageKey,
+                    // pageKey is per-GoRoute, not per-param, so key on the id to
+                    // rebuild state when switching between channels.
+                    child: AdminChannelScreen(
+                      key: ValueKey(state.pathParameters['id']),
+                      cid: state.pathParameters['id']!,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -97,7 +112,7 @@ class App extends StatelessWidget {
           path: '/video/:id',
           name: 'video',
           pageBuilder: (context, state) =>
-              NoTransitionPage(child: VideoScreen(state.pathParameters['id']!)),
+              NoTransitionPage(key: state.pageKey, child: VideoScreen(state.pathParameters['id']!)),
         ),
       ],
     );

@@ -1,6 +1,5 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:go_router/go_router.dart';
-import 'package:hugeicons/hugeicons.dart';
 import 'package:tldrnews_app/src/objects/content/youtube_video.dart';
 import 'package:tldrnews_app/src/utils/extensions/context.dart';
 
@@ -22,7 +21,7 @@ class VideoWidget extends StatelessWidget {
                 ? Container(
                     color: context.colors.tertiary,
                     width: double.infinity,
-                    child: const HugeIcon(icon: HugeIcons.strokeRoundedVideo01, strokeWidth: 2.5),
+                    child: const Icon(Icons.videocam),
                   )
                 : AspectRatio(
                     aspectRatio: 16 / 9,
