@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:tldrnews_app/src/services/local_service.dart';
 
 part 'settings_controller.g.dart';

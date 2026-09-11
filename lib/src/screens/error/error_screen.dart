@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:go_router/go_router.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:tldrnews_app/src/utils/extensions/context.dart';
 import 'package:tldrnews_app/src/utils/extensions/core.dart';
 
@@ -22,7 +22,7 @@ class ErrorScreen extends StatelessWidget {
             child: IconButton(
               padding: .symmetric(horizontal: 8, vertical: 0),
               onPressed: () => context.go('/'),
-              icon: PhosphorIcon(PhosphorIcons.arrowLeft(PhosphorIconsStyle.bold)),
+              icon: const HugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01, strokeWidth: 2.5),
             ),
           ),
         ),

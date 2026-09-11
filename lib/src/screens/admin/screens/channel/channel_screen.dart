@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:tldrnews_app/src/objects/content/series.dart';
 import 'package:tldrnews_app/src/objects/content/youtube_video.dart';
 import 'package:tldrnews_app/src/screens/admin/screens/channel/channel_controller.dart';
@@ -78,14 +78,14 @@ class _AdminChannelScreenState extends State<AdminChannelScreen> {
 
   Widget crmActionBar() {
     return ListTile(
-      leading: PhosphorIcon(PhosphorIcons.cloudArrowDown()),
+      leading: const HugeIcon(icon: HugeIcons.strokeRoundedCloudDownload),
       title: const Text('Youtube Content'),
       subtitle: const Text('Fetch recent videos and playlists from YouTube'),
       trailing: ctlr.isFetching
           ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
           : ElevatedButton.icon(
               onPressed: () => ctlr.fetchChannelConntentFromYoutube(context),
-              icon: PhosphorIcon(PhosphorIcons.download()),
+              icon: const HugeIcon(icon: HugeIcons.strokeRoundedDownload01),
               label: const Text('Fetch'),
             ),
     );
@@ -95,7 +95,7 @@ class _AdminChannelScreenState extends State<AdminChannelScreen> {
     return Container(
       color: ctlr.editted ? context.colors.primaryContainer : context.colors.surfaceContainerLow,
       child: ListTile(
-        leading: PhosphorIcon(PhosphorIcons.floppyDisk()),
+        leading: const HugeIcon(icon: HugeIcons.strokeRoundedFloppyDisk),
         title: Text('Save Changes', style: Theme.of(context).textTheme.bodyMedium),
         subtitle: Text(
           'Persist changes to Firestore',
@@ -113,7 +113,7 @@ class _AdminChannelScreenState extends State<AdminChannelScreen> {
     return Container(
       color: deleteMode ? context.colors.errorContainer : context.colors.surfaceContainerLow,
       child: ListTile(
-        leading: PhosphorIcon(PhosphorIcons.floppyDisk()),
+        leading: const HugeIcon(icon: HugeIcons.strokeRoundedFloppyDisk),
         title: Text('Delete Mode', style: Theme.of(context).textTheme.bodyMedium),
         subtitle: Text(
           'Enable deletion of videos and series from the channel',
@@ -136,14 +136,16 @@ class _AdminChannelScreenState extends State<AdminChannelScreen> {
       children: [
         ListTile(
           title: Text('Videos', style: context.textTheme.headlineSmall),
-          trailing: PhosphorIcon(
-            !videoCardExpanded ? PhosphorIcons.caretUp() : PhosphorIcons.caretDown(),
+          trailing: HugeIcon(
+            icon: !videoCardExpanded
+                ? HugeIcons.strokeRoundedArrowUp01
+                : HugeIcons.strokeRoundedArrowDown01,
           ),
           onTap: () => setState(() => videoCardExpanded = !videoCardExpanded),
         ),
         if (videoCardExpanded)
           ListTile(
-            leading: PhosphorIcon(PhosphorIcons.plus()),
+            leading: const HugeIcon(icon: HugeIcons.strokeRoundedAdd01),
             title: const Text('Add new video'),
             onTap: () => ContentEditor.video(context, ctlr),
           ),
@@ -166,7 +168,9 @@ class _AdminChannelScreenState extends State<AdminChannelScreen> {
         ? Image.network(video.imageUrl!, width: 100, fit: BoxFit.cover)
         : null,
     title: Text(video.title, style: Theme.of(context).textTheme.bodyMedium),
-    trailing: PhosphorIcon(deleteMode ? PhosphorIcons.trash() : PhosphorIcons.caretRight()),
+    trailing: HugeIcon(
+      icon: deleteMode ? HugeIcons.strokeRoundedDelete02 : HugeIcons.strokeRoundedArrowRight01,
+    ),
     onTap: () => deleteMode ? ctlr.removeVideo(video) : ContentEditor.video(context, ctlr, video),
   );
 
@@ -179,14 +183,16 @@ class _AdminChannelScreenState extends State<AdminChannelScreen> {
       children: [
         ListTile(
           title: Text('Series', style: context.textTheme.headlineSmall),
-          trailing: PhosphorIcon(
-            seriesCardExpanded ? PhosphorIcons.caretUp() : PhosphorIcons.caretDown(),
+          trailing: HugeIcon(
+            icon: seriesCardExpanded
+                ? HugeIcons.strokeRoundedArrowUp01
+                : HugeIcons.strokeRoundedArrowDown01,
           ),
           onTap: () => setState(() => seriesCardExpanded = !seriesCardExpanded),
         ),
         if (seriesCardExpanded)
           ListTile(
-            leading: PhosphorIcon(PhosphorIcons.plus()),
+            leading: const HugeIcon(icon: HugeIcons.strokeRoundedAdd01),
             title: const Text('Add new series'),
             onTap: () => ContentEditor.series(context, ctlr),
           ),
@@ -210,7 +216,9 @@ class _AdminChannelScreenState extends State<AdminChannelScreen> {
         ? Image.network(series.imageUrl!, width: 100, fit: BoxFit.cover)
         : null,
     title: Text(series.title, style: Theme.of(context).textTheme.bodyMedium),
-    trailing: PhosphorIcon(deleteMode ? PhosphorIcons.trash() : PhosphorIcons.caretRight()),
+    trailing: HugeIcon(
+      icon: deleteMode ? HugeIcons.strokeRoundedDelete02 : HugeIcons.strokeRoundedArrowRight01,
+    ),
     onTap: () =>
         deleteMode ? ctlr.removeSeries(series) : ContentEditor.series(context, ctlr, series),
   );

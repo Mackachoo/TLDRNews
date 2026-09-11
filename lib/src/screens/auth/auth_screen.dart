@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:tldrnews_app/src/app.dart';
 import 'package:tldrnews_app/src/utils/extensions/context.dart';
 
@@ -48,8 +48,9 @@ class AuthScreen extends StatelessWidget {
                         ),
                         if (App.ctlr.auth.meta?.admin == true)
                           ListTile(
-                            leading: PhosphorIcon(
-                              PhosphorIcons.shieldStar(PhosphorIconsStyle.bold),
+                            leading: HugeIcon(
+                              icon: HugeIcons.strokeRoundedShieldUser,
+                              strokeWidth: 2.5,
                               color: context.colors.tertiary,
                             ),
                             title: Text('You are a TLDR Admin'),

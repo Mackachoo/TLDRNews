@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:tldrnews_app/src/utils/extensions/context.dart';
 
 class Message {

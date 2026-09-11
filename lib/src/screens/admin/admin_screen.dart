@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:go_router/go_router.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:tldrnews_app/src/objects/channel/snippets.dart';
 import 'package:tldrnews_app/src/utils/extensions/context.dart';
 import 'package:tldrnews_app/src/widgets/responsive_grid.dart';
@@ -18,10 +18,10 @@ class AdminScreen extends StatelessWidget {
           Text('Admin Panel', style: Theme.of(context).textTheme.headlineMedium),
           SizedBox(height: 16),
           ListTile(
-            leading: PhosphorIcon(PhosphorIcons.userGear()),
+            leading: const HugeIcon(icon: HugeIcons.strokeRoundedUserSettings01),
             title: Text('Admins'),
             subtitle: Text('View and manage admins'),
-            trailing: PhosphorIcon(PhosphorIcons.caretRight()),
+            trailing: const HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01),
             onTap: () => context.push('/admin/users'),
           ),
           SizedBox(height: 16),

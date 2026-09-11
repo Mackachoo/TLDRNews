@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:tldrnews_app/src/screens/channels/channel_controller.dart';
 import 'package:tldrnews_app/src/screens/channels/widgets/series_widget.dart';
 

@@ -26,6 +26,12 @@ service cloud.firestore {
       allow read:   if true;
       allow write:  if false;
     }
+
+    // Party Channel - Members can read but only admins can write
+    match /channels/party/{pid} {
+      allow read:   if isAuthenticated() && isPartyMember();
+      allow write:  if false;
+    }
     
     //* Helper Functions --------------------------------------------
 
@@ -37,5 +43,9 @@ service cloud.firestore {
       let metaDoc = get(/databases/$(database)/documents/meta/$(request.auth.uid));
       return metaDoc.data.admin == true;
     }
+
+    function isPartyMember() {
+      let partyDoc = get(/databases/$(database)/documents/channels/party/$(request.auth.uid));
+      return metaDoc.data.party == true;
   }
 }

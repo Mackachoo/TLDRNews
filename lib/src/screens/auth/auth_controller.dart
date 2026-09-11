@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:tldrnews_app/src/objects/account/account.dart';
 import 'package:tldrnews_app/src/objects/account/meta.dart';

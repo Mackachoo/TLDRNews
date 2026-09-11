@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class ChannelIcon extends StatelessWidget {
   const ChannelIcon({super.key, required this.icon, this.color, this.background});

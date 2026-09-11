@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:tldrnews_app/src/screens/channels/channel_controller.dart';
 import 'package:tldrnews_app/src/screens/channels/widgets/video_widget.dart';
 import 'package:tldrnews_app/src/widgets/responsive_grid.dart';

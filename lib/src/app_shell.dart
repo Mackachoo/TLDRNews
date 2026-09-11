@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:go_router/go_router.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:tldrnews_app/src/app.dart';
 import 'package:tldrnews_app/src/objects/channel/snippets.dart';
 import 'package:tldrnews_app/src/utils/extensions/context.dart';
@@ -52,7 +52,7 @@ class AppShell extends StatelessWidget {
             padding: .symmetric(horizontal: 8, vertical: 0),
             onPressed: () => showReturn ? context.forcePop() : context.go('/'),
             icon: showReturn && !kIsWeb
-                ? PhosphorIcon(PhosphorIcons.arrowLeft(PhosphorIconsStyle.bold))
+                ? const HugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01, strokeWidth: 2.5)
                 : Image.asset('assets/logos/tldr-white.png', height: double.infinity),
           ),
         ),
@@ -65,17 +65,16 @@ class AppShell extends StatelessWidget {
     );
   }
 
-  static Map<String, PhosphorIconData> get actions => {
-    if (App.ctlr.auth.meta?.admin == true)
-      '/admin': PhosphorIcons.shieldStar(PhosphorIconsStyle.bold),
-    '/account': PhosphorIcons.userCircle(PhosphorIconsStyle.bold),
-    '/settings': PhosphorIcons.gear(PhosphorIconsStyle.bold),
+  static Map<String, List<List<dynamic>>> get actions => {
+    if (App.ctlr.auth.meta?.admin == true) '/admin': HugeIcons.strokeRoundedShieldUser,
+    '/account': HugeIcons.strokeRoundedUserCircle,
+    '/settings': HugeIcons.strokeRoundedSettings01,
   };
 
   static SizedBox actionButton(
     BuildContext context, {
     required String destination,
-    required PhosphorIconData icon,
+    required List<List<dynamic>> icon,
   }) {
     final route = GoRouterState.of(context).uri.toString();
 
@@ -86,7 +85,7 @@ class AppShell extends StatelessWidget {
         child: IconButton(
           padding: .zero,
           onPressed: () => route == destination ? null : context.go(destination),
-          icon: PhosphorIcon(icon),
+          icon: HugeIcon(icon: icon, strokeWidth: 2.5),
         ),
       ),
     );

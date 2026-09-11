@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:tldrnews_app/src/objects/account/account.dart';
 import 'package:tldrnews_app/src/services/firestore_service.dart';
 import 'package:tldrnews_app/src/utils/message.dart';

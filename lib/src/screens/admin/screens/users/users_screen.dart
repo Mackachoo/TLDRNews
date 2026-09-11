@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:go_router/go_router.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:tldrnews_app/src/screens/admin/screens/users/users_controller.dart';
 import 'package:tldrnews_app/src/utils/extensions/context.dart';
 
@@ -42,7 +42,7 @@ class AdminUsersScreen extends StatelessWidget {
                       title: Text(admin?.name ?? 'Unnamed'),
                       subtitle: Text(admin?.uid ?? 'No UID'),
                       trailing: IconButton(
-                        icon: PhosphorIcon(PhosphorIcons.x()),
+                        icon: const HugeIcon(icon: HugeIcons.strokeRoundedCancel01),
                         onPressed: () => ctlr.removeAdmin(context, admin!.uid),
                       ),
                     );
