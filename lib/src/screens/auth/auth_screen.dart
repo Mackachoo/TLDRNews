@@ -53,10 +53,17 @@ class AuthScreen extends StatelessWidget {
                             ),
                             title: Text('You are a TLDR Admin'),
                           ),
-                        if (App.ctlr.auth.meta?.party == true)
+                        if (App.ctlr.auth.meta?.partyApproved == true)
                           ListTile(
                             leading: Image.asset('assets/logos/tldr-party.png', height: 32),
                             title: Text('You are a TLDR Party Member!'),
+                          ),
+                        if (App.ctlr.auth.meta?.partyApproved == false)
+                          ListTile(
+                            leading: Image.asset('assets/logos/tldr-party.png', height: 32),
+                            title: Text('Get your TLDR Party Membership approved!'),
+                            trailing: Icon(Icons.approval),
+                            onTap: () => partyApprovalDialog(context),
                           ),
                       ]
                     : [],
@@ -68,6 +75,39 @@ class AuthScreen extends StatelessWidget {
         );
       },
     );
+  }
+
+  // Picks a random video from TLDR Party from the last 14 days, then requests the URL for the video. If it matches the videoId,
+  //the user becomes a TLDR Party member. Instead of this being a bool it is now a date. It is valid as long as the user Party
+  //membership date is with 90 days.
+  Future<void> partyApprovalDialog(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Party Membership Approval'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'To validate your TLDR Party membership, you need to fetch the URL for the following video from TLDR Party blog. If the URL matches the video ID, your membership will be approved for 90 days.',
+            ),
+          ],
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          // ElevatedButton(
+          //   onPressed: () => Navigator.pop(context, true),
+          //   child: const Text('Rebuild'),
+          // ),
+        ],
+      ),
+    );
+    // if (confirmed == true && mounted) {
+    //   await ctlr.fetchChannelContentFromYoutube(context, rebuild: true);
+    // }
   }
 
   Widget login() {

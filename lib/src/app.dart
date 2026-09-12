@@ -53,7 +53,7 @@ class App extends StatelessWidget {
           if (ctlr.auth.meta?.admin != true) return '/';
         } else if (state.uri.path.contains('party')) {
           if (!ctlr.auth.resolved) return '/';
-          if (ctlr.auth.meta?.party != true) return '/';
+          if (ctlr.auth.meta?.partyApproved != true) return '/';
         }
         return null;
       },

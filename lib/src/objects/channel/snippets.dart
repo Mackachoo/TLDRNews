@@ -4,7 +4,6 @@ import 'package:tldrnews_app/src/utils/extensions/context.dart';
 import 'package:tldrnews_app/src/utils/extensions/core.dart';
 import 'package:tldrnews_app/src/widgets/channel_icon.dart';
 
-@JsonSerializable()
 class ChannelSnippet {
   @JsonKey(includeToJson: false)
   final String id;

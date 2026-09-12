@@ -171,6 +171,22 @@ class AuthController with ChangeNotifier {
   Future signInWithApple(BuildContext context) async =>
       requestAuthentication(context, _service.signInWithApple);
 
+  //* Party Methods ----------------------------------------------
+
+  // Picks a random video from TLDR Party from the last 14 days, then requests the URL for the video. If it matches the videoId,
+  //the user becomes a TLDR Party member. Instead of this being a bool it is now a date. It is valid as long as the user Party
+  //membership date is with 90 days.
+  void checkPartyMembership(BuildContext context) async {
+    try {} catch (e) {
+      debugPrint('Failed to check party membership: $e');
+      if (context.mounted) {
+        Message.error(context, 'Failed to check party membership');
+      }
+    } finally {
+      if (context.mounted) Navigator.of(context, rootNavigator: true).pop();
+    }
+  }
+
   //* Additional Methods ------------------------------------------
 
   void showLoading(BuildContext context) => showDialog(

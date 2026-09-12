@@ -1,18 +1,30 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:tldrnews_app/src/objects/channel/snippets.dart';
+import 'package:tldrnews_app/src/services/firestore/converters.dart';
 
 part 'meta.g.dart';
 
 @JsonSerializable()
 class Meta {
-  final bool admin;
-  final bool party;
+  Meta({this.admin = false, this.party});
 
-  Meta({this.admin = false, this.party = false});
+  final bool admin;
+
+  @DateTimeConverter()
+  final DateTime? party;
+
+  // If the user has approved TLDR Party membership within the last 90 days, include the TLDR Party channel.
+  bool get partyApproved {
+    if (party == null) return false;
+    final difference = DateTime.now().difference(party!);
+    final test = difference.inDays;
+    return difference.inDays <= 90;
+  }
 
   List<ChannelSnippet> get channels {
     List<ChannelSnippet> channels = [];
-    if (party) channels.add(ChannelSnippets.party);
+    if (partyApproved) channels.add(ChannelSnippets.party);
     channels.addAll(ChannelSnippets.free);
     return channels;
   }
