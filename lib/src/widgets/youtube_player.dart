@@ -5,12 +5,6 @@ import 'package:tldrnews_app/src/objects/content/youtube_video.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 /// Plays a [YoutubeVideo] with a 16:9 surface and built-in controls.
-///
-/// Fullscreen is handled internally by the player (triggered by its own
-/// fullscreen button, or automatically when the device rotates to
-/// landscape). On mobile this widget additionally locks the screen to
-/// landscape and hides system UI while fullscreen is active, so the video
-/// truly fills the screen, and restores both when fullscreen ends.
 class YoutubeVideoPlayer extends StatefulWidget {
   const YoutubeVideoPlayer(this.video, {super.key});
 
@@ -40,10 +34,12 @@ class _YoutubeVideoPlayerState extends State<YoutubeVideoPlayer> {
 
   void _onFullscreenChanged(bool isFullscreen) {
     if (isFullscreen) {
-      SystemChrome.setPreferredOrientations([
-        DeviceOrientation.landscapeLeft,
-        DeviceOrientation.landscapeRight,
-      ]);
+      if (_ctlr.value.fullScreenOption.locked) {
+        SystemChrome.setPreferredOrientations([
+          DeviceOrientation.landscapeLeft,
+          DeviceOrientation.landscapeRight,
+        ]);
+      }
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     } else {
       _restoreOrientation();

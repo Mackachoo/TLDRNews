@@ -35,20 +35,35 @@ class AppShell extends StatelessWidget {
     final title =
         '${route.contains('/channel/') ? ChannelSnippets.byId(route.split('/channel/').last)?.name ?? 'TLDR News' : 'TLDR News'}${route.startsWith('/admin') ? ' (Admin)' : ''}';
 
+    final canGoBack = GoRouterState.of(context).uri.path != '/';
+
     return AppBar(
       backgroundColor: context.colors.secondaryFixedDim,
       foregroundColor: context.colors.onSecondaryFixed,
-      leadingWidth: 96,
-      leading: SizedBox(
-        height: double.infinity,
-        child: AspectRatio(
-          aspectRatio: 1,
-          child: IconButton(
-            padding: .symmetric(horizontal: 8, vertical: 0),
-            onPressed: () => context.go('/'),
-            icon: Image.asset('assets/logos/tldr-white.png', height: double.infinity),
+      automaticallyImplyLeading: false,
+      leadingWidth: canGoBack ? 144 : 96,
+      leading: Row(
+        mainAxisSize: .min,
+        children: [
+          if (canGoBack)
+            IconButton(
+              padding: .symmetric(horizontal: 8, vertical: 0),
+              onPressed: () => context.forcePop(),
+              icon: const Icon(Icons.arrow_back),
+            ),
+          SizedBox(
+            height: double.infinity,
+            child: AspectRatio(
+              aspectRatio: 1,
+              child: IconButton(
+                padding: .symmetric(horizontal: 8, vertical: 0),
+                // The logo resets to the root rather than stacking another home.
+                onPressed: () => context.go('/'),
+                icon: Image.asset('assets/logos/tldr-white.png', height: double.infinity),
+              ),
+            ),
           ),
-        ),
+        ],
       ),
       title: Text(title),
       actionsPadding: .zero,
@@ -77,7 +92,7 @@ class AppShell extends StatelessWidget {
         aspectRatio: 1,
         child: IconButton(
           padding: .zero,
-          onPressed: () => route == destination ? null : context.go(destination),
+          onPressed: () => route == destination ? null : context.push(destination),
           icon: Icon(icon),
         ),
       ),

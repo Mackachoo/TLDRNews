@@ -38,7 +38,11 @@ class App extends StatelessWidget {
     );
   }
 
+  static Page<void> page(GoRouterState state, Widget child) =>
+      NoTransitionPage(key: state.pageKey, child: child);
+
   static GoRouter router() {
+    GoRouter.optionURLReflectsImperativeAPIs = true;
     return GoRouter(
       initialLocation: '/',
       // debugLogDiagnostics: true,
@@ -61,63 +65,68 @@ class App extends StatelessWidget {
             GoRoute(
               path: '/',
               name: 'home',
-              pageBuilder: (context, state) =>
-                  NoTransitionPage(key: state.pageKey, child: const HomeScreen()),
-            ),
-            GoRoute(
-              path: '/settings',
-              name: 'settings',
-              pageBuilder: (context, state) =>
-                  NoTransitionPage(key: state.pageKey, child: const SettingsScreen()),
-            ),
-            GoRoute(
-              path: '/account',
-              name: 'account',
-              pageBuilder: (context, state) =>
-                  NoTransitionPage(key: state.pageKey, child: const AuthScreen()),
-            ),
-            GoRoute(
-              path: '/channel/:id',
-              name: 'channel',
-              pageBuilder: (context, state) => NoTransitionPage(
-                key: state.pageKey,
-                child: ChannelScreen(cid: state.pathParameters['id']!),
-              ),
-            ),
-            GoRoute(
-              path: '/admin',
-              name: 'admin',
-              pageBuilder: (context, state) =>
-                  NoTransitionPage(key: state.pageKey, child: const AdminScreen()),
+              pageBuilder: (context, state) => page(state, const HomeScreen()),
               routes: [
                 GoRoute(
-                  path: 'users',
-                  name: 'admin-users',
-                  pageBuilder: (context, state) =>
-                      NoTransitionPage(key: state.pageKey, child: const AdminUsersScreen()),
+                  path: 'settings',
+                  name: 'settings',
+                  pageBuilder: (context, state) => page(state, const SettingsScreen()),
+                ),
+                GoRoute(
+                  path: 'account',
+                  name: 'account',
+                  pageBuilder: (context, state) => page(state, const AuthScreen()),
                 ),
                 GoRoute(
                   path: 'channel/:id',
-                  name: 'admin-channel',
-                  pageBuilder: (context, state) => NoTransitionPage(
-                    key: state.pageKey,
+                  name: 'channel',
+                  pageBuilder: (context, state) => page(
+                    state,
                     // pageKey is per-GoRoute, not per-param, so key on the id to
                     // rebuild state when switching between channels.
-                    child: AdminChannelScreen(
+                    ChannelScreen(
                       key: ValueKey(state.pathParameters['id']),
                       cid: state.pathParameters['id']!,
                     ),
                   ),
                 ),
+                GoRoute(
+                  path: 'video/:id',
+                  name: 'video',
+                  pageBuilder: (context, state) => page(
+                    state,
+                    VideoScreen(
+                      state.pathParameters['id']!,
+                      key: ValueKey(state.pathParameters['id']),
+                    ),
+                  ),
+                ),
+                GoRoute(
+                  path: 'admin',
+                  name: 'admin',
+                  pageBuilder: (context, state) => page(state, const AdminScreen()),
+                  routes: [
+                    GoRoute(
+                      path: 'users',
+                      name: 'admin-users',
+                      pageBuilder: (context, state) => page(state, const AdminUsersScreen()),
+                    ),
+                    GoRoute(
+                      path: 'channel/:id',
+                      name: 'admin-channel',
+                      pageBuilder: (context, state) => page(
+                        state,
+                        AdminChannelScreen(
+                          key: ValueKey(state.pathParameters['id']),
+                          cid: state.pathParameters['id']!,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ],
-        ),
-        GoRoute(
-          path: '/video/:id',
-          name: 'video',
-          pageBuilder: (context, state) =>
-              NoTransitionPage(key: state.pageKey, child: VideoScreen(state.pathParameters['id']!)),
         ),
       ],
     );

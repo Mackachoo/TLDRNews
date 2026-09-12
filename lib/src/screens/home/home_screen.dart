@@ -12,7 +12,7 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final channels = App.ctlr.auth.meta?.channels ?? ChannelSnippets.free;
     final buttons = channels
-        .map((c) => c.button(context, onTap: (id) => context.go('/channel/$id')))
+        .map((c) => c.button(context, onTap: (id) => context.push('/channel/$id')))
         .toList();
 
     return Container(
