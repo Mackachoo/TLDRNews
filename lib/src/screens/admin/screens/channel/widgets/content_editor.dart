@@ -3,7 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:tldrnews_app/src/objects/content/youtube_video.dart';
 import 'package:tldrnews_app/src/objects/content/series.dart';
 import 'package:tldrnews_app/src/screens/admin/screens/channel/channel_controller.dart';
-import 'package:tldrnews_app/src/services/youtube/youtube_service.dart';
+import 'package:tldrnews_app/src/services/youtube_service.dart';
 
 class ContentEditor {
   static void video(

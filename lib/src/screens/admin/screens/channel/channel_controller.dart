@@ -4,7 +4,7 @@ import 'package:tldrnews_app/src/objects/channel/snippets.dart';
 import 'package:tldrnews_app/src/objects/content/series.dart';
 import 'package:tldrnews_app/src/objects/content/youtube_video.dart';
 import 'package:tldrnews_app/src/services/firestore_service.dart';
-import 'package:tldrnews_app/src/services/youtube/youtube_service.dart';
+import 'package:tldrnews_app/src/services/youtube_service.dart';
 import 'package:tldrnews_app/src/utils/message.dart';
 
 class AdminChannelController extends ChangeNotifier {
