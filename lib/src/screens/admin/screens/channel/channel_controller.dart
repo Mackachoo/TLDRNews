@@ -72,8 +72,10 @@ class AdminChannelController extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Fetches videos and playlists from the channel's YouTube URL
-  /// and updates both the local channel object and Firestore
+  /// Fetches videos and playlists from the channel's YouTube URL, adding only
+  /// the ones the channel doesn't already have, and reports what was added.
+  /// Existing videos and series are left untouched, and nothing is written to
+  /// Firestore when there is nothing new.
   Future<void> fetchChannelConntentFromYoutube(BuildContext context) async {
     if (channel == null) {
       if (context.mounted) Message.error(context, 'Channel data not loaded yet');
@@ -92,10 +94,12 @@ class AdminChannelController extends ChangeNotifier {
       isFetching = true;
       notifyListeners();
 
-      // Build set of existing video IDs to skip already-downloaded videos
+      // Build sets of existing IDs to skip content that's already downloaded
       final existingVideoIds = channel!.videos.keys.toSet();
+      final existingSeriesIds = channel!.series.keys.toSet();
       debugPrint(
-        'AdminChannelController: Found ${existingVideoIds.length} existing videos, fetching new ones',
+        'AdminChannelController: Found ${existingVideoIds.length} existing videos and '
+        '${existingSeriesIds.length} existing series, fetching new ones',
       );
 
       // Fetch content from YouTube, excluding existing IDs
@@ -103,23 +107,40 @@ class AdminChannelController extends ChangeNotifier {
       final result = await YouTubeService.fetchChannelContent(
         channel!.channelUrl,
         excludeVideoIds: existingVideoIds,
+        excludeSeriesIds: existingSeriesIds,
       );
 
-      final videos = result['videos'] as List? ?? [];
-      final series = result['series'] as List? ?? [];
+      final videos = (result['videos'] as List? ?? []).cast<YoutubeVideo>();
+      final series = (result['series'] as List? ?? []).cast<Series>();
+
+      // The service already filters by the excluded IDs, but diff again here so
+      // nothing existing can be overwritten
+      final newVideos = videos.where((video) => !existingVideoIds.contains(video.id)).toList();
+      final newSeries = series
+          .where((playlist) => !existingSeriesIds.contains(playlist.id))
+          .toList();
 
       debugPrint(
-        'AdminChannelController: Fetched ${videos.length} new videos and ${series.length} playlists',
+        'AdminChannelController: Fetched ${videos.length} videos and ${series.length} playlists, '
+        'of which ${newVideos.length} videos and ${newSeries.length} series are new',
       );
 
-      // Add new videos to existing ones (most recent first due to YouTube service sorting)
-      for (final video in videos) {
-        channel!.videos[video.id] = video;
+      if (newVideos.isEmpty && newSeries.isEmpty) {
+        debugPrint('AdminChannelController: Nothing new to add, skipping Firestore write');
+        if (context.mounted) {
+          Message.info(context, 'No new videos or playlists found — channel is up to date.');
+        }
+        isFetching = false;
+        notifyListeners();
+        return;
       }
 
-      // Replace series with fresh list
-      channel!.series.clear();
-      for (final playlist in series) {
+      // Add the new content alongside the existing (most recent first due to
+      // YouTube service sorting)
+      for (final video in newVideos) {
+        channel!.videos[video.id] = video;
+      }
+      for (final playlist in newSeries) {
         channel!.series[playlist.id] = playlist;
       }
 
@@ -127,14 +148,12 @@ class AdminChannelController extends ChangeNotifier {
 
       // Persist changes to Firestore immediately
       await FirestoreService.channel.set(channel!, merge: true);
+      original = channel!.copy();
 
       debugPrint('AdminChannelController: Successfully saved to Firestore');
 
       if (context.mounted) {
-        Message.success(
-          context,
-          'Successfully fetched ${videos.length} videos and ${series.length} playlists!',
-        );
+        Message.success(context, 'Added ${_addedSummary(newVideos.length, newSeries.length)}!');
       }
       isFetching = false;
       notifyListeners();
@@ -144,5 +163,14 @@ class AdminChannelController extends ChangeNotifier {
       isFetching = false;
       notifyListeners();
     }
+  }
+
+  /// e.g. '3 new videos and 1 new playlist', omitting whichever count is zero
+  String _addedSummary(int videoCount, int seriesCount) {
+    final parts = [
+      if (videoCount > 0) '$videoCount new ${videoCount == 1 ? 'video' : 'videos'}',
+      if (seriesCount > 0) '$seriesCount new ${seriesCount == 1 ? 'playlist' : 'playlists'}',
+    ];
+    return parts.join(' and ');
   }
 }

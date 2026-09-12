@@ -6,18 +6,15 @@ import 'package:tldrnews_app/src/objects/content/series.dart';
 import 'package:tldrnews_app/src/services/config_service.dart';
 
 class YouTubeService {
-  static const String _baseUrl = 'https://www.googleapis.com/youtube/v3';
-
-  // Get API key dynamically from Firebase Remote Config
-  static String _getApiKey() => ConfigService.getYouTubeApiKey();
-
   /// Fetches videos and playlists from a YouTube channel URL
   /// Parses channel URL to extract channel ID (supports @handle and /channel/ID formats)
   /// [excludeVideoIds] - Set of video IDs to exclude (useful for incremental updates)
+  /// [excludeSeriesIds] - Set of playlist IDs to exclude (useful for incremental updates)
   /// Returns a map with 'videos' and 'series' (playlists) keys
   static Future<Map<String, dynamic>> fetchChannelContent(
     String channelUrl, {
     Set<String> excludeVideoIds = const {},
+    Set<String> excludeSeriesIds = const {},
   }) async {
     try {
       debugPrint('YouTubeService.fetchChannelContent: Fetching for URL: $channelUrl');
@@ -73,7 +70,7 @@ class YouTubeService {
 
       // Fetch all playlists from the channel
       debugPrint('YouTubeService.fetchChannelContent: Fetching channel playlists');
-      final series = await _fetchChannelPlaylists(channelId);
+      final series = await _fetchChannelPlaylists(channelId, excludeIds: excludeSeriesIds);
       debugPrint('YouTubeService.fetchChannelContent: Fetched ${series.length} playlists');
 
       return {'videos': videos, 'series': series};
@@ -82,6 +79,13 @@ class YouTubeService {
       rethrow;
     }
   }
+
+  // Get API key dynamically from Firebase Remote Config
+  static String _getApiKey() => ConfigService.getYouTubeApiKey();
+
+  //* Private Methods --------------------------------------
+
+  static const String _baseUrl = 'https://www.googleapis.com/youtube/v3';
 
   /// Extracts channel ID from various YouTube URL formats
   /// Supports:
@@ -272,10 +276,12 @@ class YouTubeService {
   }
 
   /// Fetches all playlists from a channel
+  /// [excludeIds] - Set of playlist IDs to exclude (useful for incremental updates)
   /// Returns a list of Series objects with video IDs
   static Future<List<Series>> _fetchChannelPlaylists(
     String channelId, {
     int maxResults = 50,
+    Set<String> excludeIds = const {},
   }) async {
     try {
       final series = <Series>[];
@@ -302,21 +308,21 @@ class YouTubeService {
           final snippet = item['snippet'];
           final playlistId = item['id'];
 
+          if (playlistId == null || excludeIds.contains(playlistId)) continue;
+
           // Fetch videos in this playlist
           final playlistVideos = await fetchPlaylistVideos(playlistId, maxResults: 100);
           final videoIds = playlistVideos.map((v) => v.id).toList();
 
-          if (playlistId != null) {
-            final playlist = Series(
-              id: playlistId,
-              title: snippet?['title'] ?? 'Untitled Playlist',
-              description: snippet?['description'],
-              imageUrl: snippet?['thumbnails']?['high']?['url'],
-              videoIds: videoIds,
-            );
-            series.add(playlist);
-            totalFetched++;
-          }
+          final playlist = Series(
+            id: playlistId,
+            title: snippet?['title'] ?? 'Untitled Playlist',
+            description: snippet?['description'],
+            imageUrl: snippet?['thumbnails']?['high']?['url'],
+            videoIds: videoIds,
+          );
+          series.add(playlist);
+          totalFetched++;
         }
 
         pageToken = data['nextPageToken'];
