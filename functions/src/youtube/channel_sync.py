@@ -29,6 +29,7 @@ def sync(cid, api_key, rebuild=False):
     )
     videos = content['videos']
     series = content['series']
+    source = content['channel']
 
     if rebuild:
         blocks_written = block_store.rebuild(db, cid, videos)
@@ -36,14 +37,17 @@ def sync(cid, api_key, rebuild=False):
         blocks_written = block_store.insert(db, cid, videos)
 
     _write_series(db, cid, series)
+    _record_source(db, cid, source)
 
     summary = {
         'addedVideos': len(videos),
         'addedSeries': len(series),
         'blocksWritten': blocks_written,
         'quotaUnits': client.quota_used,
+        'sourceChannel': source['title'],
+        'sourceChannelId': source['id'],
     }
-    log.info('Synced %s: %s', cid, summary)
+    log.info('Synced %s from %r (%s): %s', cid, source['title'], source['id'], summary)
     return summary
 
 
@@ -82,6 +86,21 @@ def _channel_data(db, cid):
 def _watermark(db, cid):
     meta = block_store.load_meta(db, cid)
     return meta[-1]['newest'] if meta else None
+
+
+def _record_source(db, cid, source):
+    """Stores which YouTube channel the URL actually resolved to, so a channel
+    pointed at the wrong URL is visible in the data instead of silently wrong."""
+    previous = db.collection('channels').document(cid).get().to_dict() or {}
+    if previous.get('youtubeChannelId') not in (None, source['id']):
+        log.warning(
+            '%s now resolves to %r (%s), previously %s — check its channelUrl',
+            cid, source['title'], source['id'], previous['youtubeChannelId'],
+        )
+
+    db.collection('channels').document(cid).set(
+        {'youtubeChannelId': source['id'], 'youtubeChannelTitle': source['title']}, merge=True
+    )
 
 
 def _write_series(db, cid, series):

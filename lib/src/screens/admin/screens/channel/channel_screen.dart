@@ -107,7 +107,11 @@ class _AdminChannelScreenState extends State<AdminChannelScreen> {
     return ListTile(
       leading: const Icon(Icons.cloud_download),
       title: const Text('Youtube Content'),
-      subtitle: const Text('Fetch recent videos and playlists from YouTube'),
+      subtitle: Text(
+        ctlr.channel?.channelUrl.isNotEmpty == true
+            ? 'Fetches from ${ctlr.channel!.channelUrl}'
+            : 'No channel URL set',
+      ),
       trailing: ctlr.isFetching
           ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
           : Row(

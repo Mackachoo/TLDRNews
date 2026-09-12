@@ -143,6 +143,13 @@ src/utils/admin_guard.py        meta/{uid}.admin check for callables
 | `sync_channel` | `on_call`, admin only | `action` of `sync`, `resolve_video` or `resolve_series`. `mode: 'rebuild'` wipes the channel's blocks and re-downloads its full history; the default incremental mode pages the uploads playlist only back to the newest block it already has. |
 | `sync_all_channels` | `on_schedule`, daily 03:00 | Incremental sync of every channel. Never rebuilds. |
 
+A channel URL is resolved with an exact `channels.list` lookup (`forHandle` for
+`@handle` URLs, `id` otherwise), never a text search, so similarly named channels
+cannot be confused. Each sync records the channel it actually resolved to on the
+channel doc as `youtubeChannelId` / `youtubeChannelTitle`, and warns if that ever
+changes — a channel pointed at the wrong URL shows up in the data rather than
+silently filling with another channel's videos.
+
 The YouTube API key lives in Secret Manager as `YOUTUBE_API_KEY` and is bound to
 both functions. Set it with `firebase functions:secrets:set YOUTUBE_API_KEY`.
 

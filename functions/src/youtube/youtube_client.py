@@ -8,7 +8,6 @@ BASE_URL = 'https://www.googleapis.com/youtube/v3'
 TIMEOUT = 15
 PAGE_SIZE = 50
 
-SEARCH_COST = 100
 DEFAULT_QUOTA_BUDGET = 5000
 
 
@@ -29,14 +28,40 @@ class YouTubeClient:
     #* Channel Content ---------------------------------------------------
 
     def fetch_channel_content(self, channel_url, exclude_ids=(), limit=None, stop_at=None):
-        channel_id = self._resolve_channel_id(channel_url)
-        uploads_id = self._uploads_playlist_id(channel_id)
+        channel = self.resolve_channel(channel_url)
 
         videos = self.fetch_playlist_videos(
-            uploads_id, exclude_ids=exclude_ids, limit=limit, stop_at=stop_at
+            channel['uploads'], exclude_ids=exclude_ids, limit=limit, stop_at=stop_at
         )
-        series = self._fetch_channel_playlists(channel_id)
-        return {'videos': videos, 'series': series}
+        series = self._fetch_channel_playlists(channel['id'])
+        return {'videos': videos, 'series': series, 'channel': channel}
+
+    def resolve_channel(self, channel_url):
+        """Channel id, title and uploads playlist for a URL, in one exact lookup."""
+        reference = _extract_channel_id(channel_url)
+        if not reference:
+            raise YouTubeError(
+                f'Could not read a channel from "{channel_url}". Expected '
+                'youtube.com/channel/UCxxxx, youtube.com/@handle, or a bare UC channel id.'
+            )
+
+        lookup = (
+            {'forHandle': reference[1:]} if reference.startswith('@') else {'id': reference}
+        )
+        items = self._get('channels', part='snippet,contentDetails', **lookup).get('items') or []
+        if not items:
+            raise YouTubeError(f'No YouTube channel matches "{channel_url}"')
+
+        item = items[0]
+        uploads = ((item.get('contentDetails') or {}).get('relatedPlaylists') or {}).get('uploads')
+        if not uploads:
+            raise YouTubeError(f'Channel "{channel_url}" exposes no uploads playlist')
+
+        return {
+            'id': item['id'],
+            'title': (item.get('snippet') or {}).get('title'),
+            'uploads': uploads,
+        }
 
     def fetch_playlist_videos(self, playlist_id, exclude_ids=(), limit=None, stop_at=None):
         """Newest first. `limit=None` pages the whole playlist; `stop_at` ends it early."""
@@ -105,40 +130,6 @@ class YouTubeClient:
         return _series_from_snippet(playlist_id, items[0].get('snippet') or {})
 
     #* Private Methods -----------------------------------------------------
-
-    def _resolve_channel_id(self, channel_url):
-        channel_id = _extract_channel_id(channel_url)
-        if not channel_id:
-            raise YouTubeError(
-                'Invalid YouTube channel URL. Expected youtube.com/channel/UCxxxx, '
-                'youtube.com/@handle, or a bare UC channel id.'
-            )
-        if not channel_id.startswith('@'):
-            return channel_id
-
-        data = self._get(
-            'search',
-            cost=SEARCH_COST,
-            part='snippet',
-            type='channel',
-            q=channel_id[1:],
-            maxResults=1,
-        )
-        items = data.get('items') or []
-        resolved = items[0].get('id', {}).get('channelId') if items else None
-        if not resolved:
-            raise YouTubeError(f'Channel handle "{channel_id}" not found on YouTube')
-        return resolved
-
-    def _uploads_playlist_id(self, channel_id):
-        items = self._get('channels', part='contentDetails', id=channel_id).get('items') or []
-        uploads = None
-        if items:
-            details = items[0].get('contentDetails') or {}
-            uploads = (details.get('relatedPlaylists') or {}).get('uploads')
-        if not uploads:
-            raise YouTubeError(f'Could not retrieve uploads playlist for channel "{channel_id}"')
-        return uploads
 
     def _fetch_channel_playlists(self, channel_id, limit=PAGE_SIZE):
         series = []

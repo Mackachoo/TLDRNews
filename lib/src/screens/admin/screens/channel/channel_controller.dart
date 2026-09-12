@@ -103,7 +103,6 @@ class AdminChannelController extends ChangeNotifier with VideoPaging {
     isFetching = true;
     notifyListeners();
 
-    print('Fetching channel content for cid: $cid');
     final result = await FunctionsService.syncChannel(cid, rebuild: rebuild);
 
     if (result == null) {
