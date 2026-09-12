@@ -12,9 +12,11 @@ Every Flutter app ships its config to end users; anyone can extract strings from
 
 - `FIREBASE_WEB_API_KEY`, `FIREBASE_ANDROID_API_KEY`, `FIREBASE_IOS_API_KEY`
 
-[lib/firebase_options.dart](../lib/firebase_options.dart) resolves each key from `.env` first and falls back to a `String.fromEnvironment(...)` compile-time constant, which is how CI supplies them (`--dart-define=KEY=...`).
+Consumed at **build time** via `--dart-define-from-file=.env` (locally) or per-key `--dart-define=KEY=...` (CI). [lib/firebase_options.dart](../lib/firebase_options.dart) reads them as `String.fromEnvironment(...)` compile-time constants.
 
-⚠️ `.env` **is** declared as a Flutter asset in `pubspec.yaml` and **is** loaded at runtime by `flutter_dotenv` in [lib/main.dart](../lib/main.dart). On web that publishes it at `build/web/assets/.env`, publicly fetchable. These three Firebase keys are therefore exposed by design, exactly as they are in any built binary — GCP key restrictions are the only thing protecting them, so the restrictions below are mandatory, not advisory.
+`.env` is **not** bundled as a Flutter asset and **not** loaded at runtime. An earlier iteration used `flutter_dotenv`, which ships `.env` to `build/web/assets/.env` where anyone can fetch it as a tidy labelled list; compile-time defines avoid that.
+
+This does **not** make the keys secret. They still sit in the minified `main.dart.js` and in every native binary, as they must for the client to reach Firebase at all — it only removes the trivially-scraped plaintext file. GCP key restrictions are the real safeguard, which makes the table below mandatory rather than advisory.
 
 ### What lives in Secret Manager
 

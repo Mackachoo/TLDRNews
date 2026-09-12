@@ -15,7 +15,6 @@ dependencies:
   go_router: ^18.0.1
   shared_preferences: ^2.5.5
   web: ^1.1.1
-  flutter_dotenv: ^6.0.1
 
   # Video Player
   youtube_player_flutter: ^10.0.1
@@ -54,7 +53,6 @@ flutter:
     - assets/auth/
     - assets/logos/
     - assets/backgrounds/
-    - .env
   fonts:
     - family: Assistant
       fonts:

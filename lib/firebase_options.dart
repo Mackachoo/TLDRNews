@@ -1,12 +1,10 @@
 import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart' show defaultTargetPlatform, kIsWeb, TargetPlatform;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 /// Default [FirebaseOptions] for use with your Firebase apps.
 ///
-/// API keys are resolved at runtime in priority order:
-///   1. `.env` (loaded by `flutter_dotenv` in [main]) — preferred for local dev.
-///   2. `--dart-define=KEY=...` (compile-time) — used by CI builds.
+/// API keys are compile-time constants. Supply them with
+/// `--dart-define-from-file=.env` locally, or per-key `--dart-define`s in CI.
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
@@ -37,19 +35,19 @@ class DefaultFirebaseOptions {
     }
   }
 
-  // Compile-time fallbacks, used when .env isn't loaded or is missing the key.
   static const _webApiKey = String.fromEnvironment('FIREBASE_WEB_API_KEY');
   static const _androidApiKey = String.fromEnvironment('FIREBASE_ANDROID_API_KEY');
   static const _iosApiKey = String.fromEnvironment('FIREBASE_IOS_API_KEY');
 
-  static String _resolve(String key, String compileTime) {
-    try {
-      final v = dotenv.env[key];
-      if (v != null && v.isNotEmpty) return v;
-    } catch (_) {
-      // dotenv not initialised; fall through.
-    }
-    return compileTime;
+  /// Names the missing key up front, rather than letting Firebase fail later
+  /// with `[firebase_core/invalid-api-key]`.
+  static String _resolve(String key, String value) {
+    assert(
+      value.isNotEmpty,
+      '$key is not set. Run with --dart-define-from-file=.env, or pass '
+      '--dart-define=$key=... See docs/setup.md.',
+    );
+    return value;
   }
 
   static FirebaseOptions get web => FirebaseOptions(

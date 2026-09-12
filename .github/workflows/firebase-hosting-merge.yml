@@ -20,13 +20,8 @@ jobs:
       # Get Flutter dependencies
       - run: flutter pub get
 
-      # `.env` is declared as a Flutter asset; CI creates an empty placeholder
-      # so the bundle resolves. Real values come from --dart-define below.
-      - name: Create empty .env placeholder
-        run: touch .env
-
-      # Build Flutter web. Secrets are injected as compile-time constants via
-      # --dart-define, so they never touch the filesystem on the runner.
+      # Keys are injected as compile-time constants via --dart-define, so they
+      # never touch the filesystem on the runner.
       - name: Build Flutter web
         env:
           FIREBASE_WEB_API_KEY: ${{ secrets.FIREBASE_WEB_API_KEY }}

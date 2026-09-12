@@ -7,7 +7,9 @@ import 'package:tldrnews_app/src/utils/extensions/core.dart';
 /// Callable Cloud Functions. Only the backend holds the YouTube API key, so all
 /// ingestion goes through here.
 class FunctionsService {
-  static final FirebaseFunctions _functions = FirebaseFunctions.instanceFor(region: 'europe-west1');
+  static const String region = 'europe-west1';
+
+  static final FirebaseFunctions _functions = FirebaseFunctions.instanceFor(region: region);
 
   //* Youtube Ingest ---------------------------------------------------
 

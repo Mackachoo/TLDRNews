@@ -38,7 +38,7 @@ flutterfire configure --project=<your-firebase-project-id>
 
 This writes:
 
-- `lib/firebase_options.dart` — but `flutterfire configure` will overwrite the `apiKey:` fields with literals. After running it, replace each `apiKey: '...'` with `apiKey: String.fromEnvironment('FIREBASE_<PLATFORM>_API_KEY')` so the keys come from `--dart-define` (see step 4) instead of being committed to source.
+- `lib/firebase_options.dart` — but `flutterfire configure` will overwrite the `apiKey:` fields with literals. After running it, restore each one to `apiKey: _resolve('FIREBASE_<PLATFORM>_API_KEY', _<platform>ApiKey)` so the keys come from `.env` (see step 4) instead of being committed to source.
 - `android/app/google-services.json`
 - `ios/Runner/GoogleService-Info.plist`
 
@@ -50,7 +50,7 @@ All three are gitignored. Re-run `flutterfire configure` whenever your Firebase 
 cp .env.example .env
 ```
 
-The app reads `.env` at runtime via `flutter_dotenv` when present, and falls back to `--dart-define` values otherwise. Locally you can just keep a populated `.env` and skip the build flags. Populate every variable:
+`.env` is read at **build time** via `--dart-define-from-file=.env`; it is not bundled with the app. Populate every variable:
 
 - **`FIREBASE_WEB_API_KEY`** — Firebase console, *Project settings → Web app → SDK setup → `apiKey`*.
 - **`FIREBASE_ANDROID_API_KEY`** — `android/app/google-services.json`, field `client[0].api_key[0].current_key`.
@@ -107,27 +107,41 @@ venv/bin/python -m pytest tests
 
 ## 7. Run
 
-Locally, the app loads `.env` at runtime — just populate it and run:
+Pass `.env` on every run and build:
 
 ```bash
-flutter run -d chrome
-flutter run -d <android>
-flutter run -d <ios>
+flutter run -d chrome --dart-define-from-file=.env
+flutter run -d <android> --dart-define-from-file=.env
+flutter build web --dart-define-from-file=.env
 ```
 
-If `.env` is missing or a value is blank, the code falls back to `--dart-define` at compile time. So this also works:
+In VS Code the bundled launch configurations in [.vscode/launch.json](../.vscode/launch.json) already carry the flag, so the run button just works.
+
+To override a value without touching `.env`, add a gitignored `.env.local` and pass both — the last file wins:
 
 ```bash
-flutter build web --dart-define=FIREBASE_WEB_API_KEY=... --dart-define=YOUTUBE_API_KEY=...
+flutter run --dart-define-from-file=.env --dart-define-from-file=.env.local
 ```
 
-That's the path CI uses (see [.github/workflows/firebase-hosting-merge.yml](../.github/workflows/firebase-hosting-merge.yml)) — secrets come from GitHub and are passed as compile-time defines.
+CI passes the same values as individual `--dart-define`s from GitHub secrets, so no `.env` exists on the runner (see [.github/workflows/firebase-hosting-merge.yml](../.github/workflows/firebase-hosting-merge.yml)).
+
+### Running against the emulators
+
+Set `USE_FIREBASE_EMULATOR=true` in `.env`, then:
+
+```bash
+firebase emulators:start
+flutter run -d chrome --dart-define-from-file=.env
+```
+
+Firestore is expected on `127.0.0.1:8080` and functions on `5001`. Override the host with `FIREBASE_EMULATOR_HOST` (an Android emulator needs `10.0.2.2`).
 
 ## Troubleshooting
 
 | Symptom | Fix |
 | --- | --- |
-| `[firebase_core/invalid-api-key]` or empty `apiKey` | `.env` is missing/blank and no `--dart-define` was passed. Populate `.env` or pass the keys at build time. |
+| Assertion: `FIREBASE_..._API_KEY is not set` | You ran without `--dart-define-from-file=.env`, or that key is blank in `.env`. |
+| `[firebase_core/invalid-api-key]` in a release build | Same cause, but asserts are stripped from release builds so it surfaces later. Check the build command carries the flag. |
 | `PlatformException(channel-error...)` on launch | `google-services.json` or `GoogleService-Info.plist` not in place. Re-run `flutterfire configure`. |
 | `403` from YouTube Data API | Key is restricted to the wrong API, wrong referrer, or quota exhausted. Check the GCP key's "Restrictions" tab. |
 | Admin routes redirect to `/` | Your `meta/{uid}` doc is missing or `admin != true`. |

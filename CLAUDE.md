@@ -8,7 +8,7 @@ the app ships to web, Android and iOS from one codebase.
 
 ```bash
 flutter pub get
-flutter run -d chrome
+flutter run -d chrome --dart-define-from-file=.env   # keys are build-time defines
 flutter analyze
 dart run build_runner build --delete-conflicting-outputs   # after touching lib/src/objects/
 
@@ -83,3 +83,8 @@ store a date as a string.
 
 **Only the Cloud Function writes to `channels/**`.** The client reads. Admin edits
 go through the callable, not direct Firestore writes.
+
+**`.env` is build-time config, not a secret store.** It is passed with
+`--dart-define-from-file` and read via `String.fromEnvironment`; it is never a
+bundled asset and never read at runtime. Everything in it ships to users, so
+genuinely secret values go to Secret Manager and are used only from `functions/`.
