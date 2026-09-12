@@ -57,10 +57,37 @@ class _AdminChannelScreenState extends State<AdminChannelScreen> {
     );
   }
 
+  /// A ListTile leading must be hard-sized. An unbounded one expands to the
+  /// full tile width, which trips ListTile's layout assert and then poisons hit
+  /// testing for the rest of the page. ChannelIcon is a bare AspectRatio, so it
+  /// fills whatever width it is offered.
+  Widget leadingBox(Widget child) => SizedBox.square(dimension: 40, child: child);
+
+  /// Thumbnails are hard-sized for the same reason, and fall back to a
+  /// placeholder because YouTube returns 404 for pulled videos.
+  Widget thumbnail(String url) => SizedBox(
+    width: 100,
+    height: 56,
+    child: Image.network(
+      url,
+      width: 100,
+      height: 56,
+      fit: BoxFit.cover,
+      // Decode at display size. hqdefault.jpg is 480x360, so without this each
+      // 100px thumbnail holds a ~690KB texture, and this page renders 50 of them.
+      cacheWidth: 200,
+      cacheHeight: 112,
+      errorBuilder: (context, error, stackTrace) => Container(
+        color: context.colors.surfaceContainerHighest,
+        child: Icon(Icons.image_not_supported, size: 20, color: context.colors.onSurfaceVariant),
+      ),
+    ),
+  );
+
   ListTile headingTile() {
     return ListTile(
       contentPadding: .all(16),
-      leading: ctlr.snippet!.icon,
+      leading: leadingBox(ctlr.snippet!.icon),
       title: Text('${ctlr.snippet!.name} Panel', style: Theme.of(context).textTheme.headlineMedium),
     );
   }
@@ -167,9 +194,7 @@ class _AdminChannelScreenState extends State<AdminChannelScreen> {
 
   Widget videoTile(YoutubeVideo video) => ListTile(
     contentPadding: .all(8),
-    leading: video.imageUrl != null
-        ? Image.network(video.imageUrl!, width: 100, fit: BoxFit.cover)
-        : null,
+    leading: video.imageUrl == null ? null : thumbnail(video.imageUrl!),
     title: Text(video.title, style: Theme.of(context).textTheme.bodyMedium),
     trailing: Icon(deleteMode ? Icons.delete : Icons.chevron_right),
     onTap: () => deleteMode ? ctlr.removeVideo(video) : ContentEditor.video(context, ctlr, video),
@@ -209,9 +234,7 @@ class _AdminChannelScreenState extends State<AdminChannelScreen> {
 
   Widget seriesTile(Series series) => ListTile(
     contentPadding: .all(8),
-    leading: series.imageUrl != null
-        ? Image.network(series.imageUrl!, width: 100, fit: BoxFit.cover)
-        : null,
+    leading: series.imageUrl != null ? thumbnail(series.imageUrl!) : null,
     title: Text(series.title, style: Theme.of(context).textTheme.bodyMedium),
     trailing: Icon(deleteMode ? Icons.delete : Icons.chevron_right),
     onTap: () =>
