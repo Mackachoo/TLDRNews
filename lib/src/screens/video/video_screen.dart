@@ -3,42 +3,76 @@ import 'package:flutter_linkify/flutter_linkify.dart';
 import 'package:tldrnews_app/src/app.dart';
 import 'package:tldrnews_app/src/objects/channel/channel.dart';
 import 'package:tldrnews_app/src/objects/content/youtube_video.dart';
+import 'package:tldrnews_app/src/services/firestore_service.dart';
 import 'package:tldrnews_app/src/utils/extensions/context.dart';
 import 'package:tldrnews_app/src/utils/extensions/core.dart';
 import 'package:tldrnews_app/src/widgets/youtube_player.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class VideoScreen extends StatelessWidget {
+class VideoScreen extends StatefulWidget {
   const VideoScreen(this.videoId, {super.key});
 
   final String videoId;
 
-  (Channel, YoutubeVideo)? retrieveVideo() {
+  @override
+  State<VideoScreen> createState() => _VideoScreenState();
+}
+
+class _VideoScreenState extends State<VideoScreen> {
+  late final Future<(Channel, YoutubeVideo)?> video = retrieveVideo();
+
+  /// Blocks already paged in answer immediately; anything else — a shared link,
+  /// or a video too old to have been scrolled to — is found by its block.
+  Future<(Channel, YoutubeVideo)?> retrieveVideo() async {
     for (final channelCtlr in App.ctlr.channels.values) {
-      final video = channelCtlr.channel?.videos[videoId];
-      if (video != null) return (channelCtlr.channel!, video);
+      final channel = channelCtlr.channel;
+      if (channel == null) continue;
+      for (final block in channelCtlr.blocks) {
+        final video = block.videos[widget.videoId];
+        if (video != null) return (channel, video);
+      }
     }
-    return null;
+
+    final found = await FirestoreService.channel.blockContainingVideo(widget.videoId);
+    if (found == null) return null;
+
+    final (cid, block) = found;
+    final channel = await FirestoreService.channel.retrieve(cid);
+    final video = block.videos[widget.videoId];
+    if (channel == null || video == null) return null;
+
+    return (channel, video);
   }
 
   @override
   Widget build(BuildContext context) {
-    final result = retrieveVideo();
+    return FutureBuilder(
+      future: video,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-    if (result == null) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.all(16),
-          child: Text(
-            'Sorry, this video was not found. It may have been removed or is not available.',
-            textAlign: TextAlign.center,
-          ),
-        ),
-      );
-    }
+        final result = snapshot.data;
+        if (result == null) return unknownVideo();
 
-    final (channel, video) = result;
+        final (channel, video) = result;
+        return details(context, channel, video);
+      },
+    );
+  }
 
+  Widget unknownVideo() => const Center(
+    child: Padding(
+      padding: EdgeInsets.all(16),
+      child: Text(
+        'Sorry, this video was not found. It may have been removed or is not available.',
+        textAlign: TextAlign.center,
+      ),
+    ),
+  );
+
+  Widget details(BuildContext context, Channel channel, YoutubeVideo video) {
     return SingleChildScrollView(
       child: Container(
         alignment: .topCenter,

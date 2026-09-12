@@ -11,6 +11,8 @@ class ResponsiveGrid extends StatelessWidget {
     this.verticalSpacing = 16,
     this.alignment = WrapAlignment.start,
     this.physics,
+    this.controller,
+    this.footer,
   });
 
   /// List of widgets to display in the grid
@@ -24,6 +26,10 @@ class ResponsiveGrid extends StatelessWidget {
 
   final WrapAlignment alignment;
   final ScrollPhysics? physics;
+  final ScrollController? controller;
+
+  /// Rendered below the grid, for paging indicators.
+  final Widget? footer;
 
   @override
   Widget build(BuildContext context) {
@@ -36,13 +42,21 @@ class ResponsiveGrid extends StatelessWidget {
 
         return SingleChildScrollView(
           physics: physics,
+          controller: controller,
           child: Padding(
             padding: padding,
-            child: Wrap(
-              spacing: horizontalSpacing,
-              runSpacing: verticalSpacing,
-              alignment: alignment,
-              children: children.map((item) => SizedBox(width: itemWidth, child: item)).toList(),
+            child: Column(
+              children: [
+                Wrap(
+                  spacing: horizontalSpacing,
+                  runSpacing: verticalSpacing,
+                  alignment: alignment,
+                  children: children
+                      .map((item) => SizedBox(width: itemWidth, child: item))
+                      .toList(),
+                ),
+                ?footer,
+              ],
             ),
           ),
         );

@@ -1,68 +1,91 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:tldrnews_app/src/objects/channel/channel.dart';
 import 'package:tldrnews_app/src/objects/channel/snippets.dart';
+import 'package:tldrnews_app/src/objects/channel/video_block.dart';
 import 'package:tldrnews_app/src/objects/content/series.dart';
 import 'package:tldrnews_app/src/objects/content/youtube_video.dart';
+import 'package:tldrnews_app/src/screens/channels/video_paging.dart';
 import 'package:tldrnews_app/src/services/firestore_service.dart';
-import 'package:tldrnews_app/src/services/youtube_service.dart';
+import 'package:tldrnews_app/src/services/functions_service.dart';
+import 'package:tldrnews_app/src/utils/extensions/core.dart';
 import 'package:tldrnews_app/src/utils/message.dart';
 
-class AdminChannelController extends ChangeNotifier {
+class AdminChannelController extends ChangeNotifier with VideoPaging {
   bool loading = true;
   bool isFetching = false;
 
+  @override
   final String cid;
   ChannelSnippet? get snippet => ChannelSnippets.byId(cid);
 
   Channel? original;
   Channel? channel;
 
-  bool get editted =>
+  /// Ids of blocks edited since the last save.
+  final Set<String> dirtyBlocks = {};
+
+  bool get editted => dirtyBlocks.isNotEmpty || _channelEditted;
+
+  bool get _channelEditted =>
       channel != null && original != null && channel!.toJson() != original!.toJson();
 
   AdminChannelController(this.cid) {
-    FirestoreService.channel.retrieve(cid).then((retrieved) {
-      original = retrieved?.copy();
-      channel = retrieved?.copy();
-      loading = false;
-      notifyListeners();
-    });
+    _load();
   }
+
+  Future<void> _load() async {
+    final retrieved = await FirestoreService.channel.retrieve(cid);
+    original = retrieved?.copy();
+    channel = retrieved?.copy();
+    await loadNewestBlock();
+    loading = false;
+    notifyListeners();
+  }
+
+  //* Editing ----------------------------------------------------------
 
   Future saveChannel(BuildContext context) async {
     if (channel == null) return;
     try {
-      await FirestoreService.channel.update(channel!);
+      if (_channelEditted) await FirestoreService.channel.update(channel!);
+
+      for (final block in blocks.where((block) => dirtyBlocks.contains(block.id))) {
+        await FirestoreService.channel.setVideoBlock(cid, block);
+      }
+
+      dirtyBlocks.clear();
       original = channel!.copy();
       if (context.mounted) Message.success(context, 'Channel saved successfully!');
-
-      notifyListeners();
     } catch (error) {
       if (context.mounted) Message.error(context, error);
-
-      notifyListeners();
     }
-  }
-
-  /// Adds a new video to the channel
-  /// If the video already exists by ID, it will be updated
-  Future<void> setVideo(YoutubeVideo video) async {
-    if (channel == null) return;
-    channel!.videos[video.id] = video;
     notifyListeners();
   }
 
-  /// Adds a new series (playlist) to the channel
-  /// If the series already exists by ID, it will be replaced
-  Future<void> setSeries(Series newSeries) async {
-    if (channel == null) return;
-    channel!.series[newSeries.id] = newSeries;
+  /// Adds or replaces a video in whichever loaded block covers its date.
+  Future<void> setVideo(YoutubeVideo video) async {
+    final block = _blockFor(video);
+    if (block == null) return;
+
+    block.videos[video.id] = video;
+    dirtyBlocks.add(block.id);
+    rebuildVideos();
     notifyListeners();
   }
 
   Future removeVideo(YoutubeVideo video) async {
+    final block = blocks.firstWhereOrNull((block) => block.videos.containsKey(video.id));
+    if (block == null) return;
+
+    block.videos.remove(video.id);
+    dirtyBlocks.add(block.id);
+    rebuildVideos();
+    notifyListeners();
+  }
+
+  Future<void> setSeries(Series newSeries) async {
     if (channel == null) return;
-    channel!.videos.remove(video.id);
+    channel!.series[newSeries.id] = newSeries;
     notifyListeners();
   }
 
@@ -72,104 +95,64 @@ class AdminChannelController extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Fetches videos and playlists from the channel's YouTube URL, adding only
-  /// the ones the channel doesn't already have, and reports what was added.
-  /// Existing videos and series are left untouched, and nothing is written to
-  /// Firestore when there is nothing new.
-  Future<void> fetchChannelConntentFromYoutube(BuildContext context) async {
-    if (channel == null) {
-      if (context.mounted) Message.error(context, 'Channel data not loaded yet');
-      return;
-    }
+  //* Youtube Ingest ---------------------------------------------------
 
-    if (channel!.channelUrl.isEmpty) {
+  /// Runs the sync function, which fetches from YouTube and writes the blocks.
+  /// [rebuild] discards the stored blocks and re-downloads the full history.
+  Future<void> fetchChannelContentFromYoutube(BuildContext context, {bool rebuild = false}) async {
+    isFetching = true;
+    notifyListeners();
+
+    final result = await FunctionsService.syncChannel(cid, rebuild: rebuild);
+
+    if (result == null) {
+      if (context.mounted) Message.error(context, 'Could not sync this channel from YouTube.');
+    } else {
+      final added = _addedSummary(result['addedVideos'] as int?, result['addedSeries'] as int?);
+      await _reload();
       if (context.mounted) {
-        Message.error(context, 'Channel URL is not set. Please configure the channel URL first.');
+        Message.success(
+          context,
+          added.isEmpty ? 'Channel is already up to date.' : 'Added $added!',
+        );
       }
-      return;
     }
 
-    try {
-      debugPrint('AdminChannelController: Starting fetch for channel URL: ${channel!.channelUrl}');
-      isFetching = true;
-      notifyListeners();
+    isFetching = false;
+    notifyListeners();
+  }
 
-      // Build sets of existing IDs to skip content that's already downloaded
-      final existingVideoIds = channel!.videos.keys.toSet();
-      final existingSeriesIds = channel!.series.keys.toSet();
-      debugPrint(
-        'AdminChannelController: Found ${existingVideoIds.length} existing videos and '
-        '${existingSeriesIds.length} existing series, fetching new ones',
-      );
+  //* Private Methods --------------------------------------------------
 
-      // Fetch content from YouTube, excluding existing IDs
-      debugPrint('AdminChannelController: Calling YouTubeService.fetchChannelContent');
-      final result = await YouTubeService.fetchChannelContent(
-        channel!.channelUrl,
-        excludeVideoIds: existingVideoIds,
-        excludeSeriesIds: existingSeriesIds,
-      );
+  Future<void> _reload() async {
+    resetPaging();
+    dirtyBlocks.clear();
+    final retrieved = await FirestoreService.channel.retrieve(cid, useCache: false);
+    original = retrieved?.copy();
+    channel = retrieved?.copy();
+    await loadNewestBlock();
+  }
 
-      final videos = (result['videos'] as List? ?? []).cast<YoutubeVideo>();
-      final series = (result['series'] as List? ?? []).cast<Series>();
+  /// Blocks are held newest first, so the first one starting at or before the
+  /// video's date is the one covering it.
+  VideoBlock? _blockFor(YoutubeVideo video) {
+    final existing = blocks.firstWhereOrNull((block) => block.videos.containsKey(video.id));
+    if (existing != null) return existing;
 
-      // The service already filters by the excluded IDs, but diff again here so
-      // nothing existing can be overwritten
-      final newVideos = videos.where((video) => !existingVideoIds.contains(video.id)).toList();
-      final newSeries = series
-          .where((playlist) => !existingSeriesIds.contains(playlist.id))
-          .toList();
+    final published = video.published;
+    if (published == null) return blocks.firstOrNull;
 
-      debugPrint(
-        'AdminChannelController: Fetched ${videos.length} videos and ${series.length} playlists, '
-        'of which ${newVideos.length} videos and ${newSeries.length} series are new',
-      );
-
-      if (newVideos.isEmpty && newSeries.isEmpty) {
-        debugPrint('AdminChannelController: Nothing new to add, skipping Firestore write');
-        if (context.mounted) {
-          Message.info(context, 'No new videos or playlists found — channel is up to date.');
-        }
-        isFetching = false;
-        notifyListeners();
-        return;
-      }
-
-      // Add the new content alongside the existing (most recent first due to
-      // YouTube service sorting)
-      for (final video in newVideos) {
-        channel!.videos[video.id] = video;
-      }
-      for (final playlist in newSeries) {
-        channel!.series[playlist.id] = playlist;
-      }
-
-      debugPrint('AdminChannelController: Updated channel object. Persisting to Firestore...');
-
-      // Persist changes to Firestore immediately
-      await FirestoreService.channel.set(channel!, merge: true);
-      original = channel!.copy();
-
-      debugPrint('AdminChannelController: Successfully saved to Firestore');
-
-      if (context.mounted) {
-        Message.success(context, 'Added ${_addedSummary(newVideos.length, newSeries.length)}!');
-      }
-      isFetching = false;
-      notifyListeners();
-    } catch (error) {
-      debugPrint('AdminChannelController: Error during fetch: $error');
-      if (context.mounted) Message.error(context, 'Error fetching content: $error');
-      isFetching = false;
-      notifyListeners();
-    }
+    return blocks.firstWhereOrNull((block) => !block.startAt.isAfter(published)) ??
+        blocks.lastOrNull;
   }
 
   /// e.g. '3 new videos and 1 new playlist', omitting whichever count is zero
-  String _addedSummary(int videoCount, int seriesCount) {
+  String _addedSummary(int? videoCount, int? seriesCount) {
+    final videos = videoCount ?? 0;
+    final series = seriesCount ?? 0;
     final parts = [
-      if (videoCount > 0) '$videoCount new ${videoCount == 1 ? 'video' : 'videos'}',
-      if (seriesCount > 0) '$seriesCount new ${seriesCount == 1 ? 'playlist' : 'playlists'}',
+      if (videos > 0) '$videos new ${videos == 1 ? 'video' : 'videos'}',
+      if (series > 0) '$series new ${series == 1 ? 'playlist' : 'playlists'}',
     ];
     return parts.join(' and ');
   }

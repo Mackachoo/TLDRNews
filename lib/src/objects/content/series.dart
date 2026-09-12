@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:tldrnews_app/src/objects/content/_content.dart';
+import 'package:tldrnews_app/src/objects/timestamp_converter.dart';
 
 part 'series.g.dart';
 

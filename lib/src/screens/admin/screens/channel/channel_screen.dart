@@ -110,10 +110,17 @@ class _AdminChannelScreenState extends State<AdminChannelScreen> {
       subtitle: const Text('Fetch recent videos and playlists from YouTube'),
       trailing: ctlr.isFetching
           ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-          : ElevatedButton.icon(
-              onPressed: () => ctlr.fetchChannelConntentFromYoutube(context),
-              icon: const Icon(Icons.download),
-              label: const Text('Fetch'),
+          : Row(
+              mainAxisSize: MainAxisSize.min,
+              spacing: 8,
+              children: [
+                TextButton(onPressed: () => confirmRebuild(), child: const Text('Rebuild')),
+                ElevatedButton.icon(
+                  onPressed: () => ctlr.fetchChannelContentFromYoutube(context),
+                  icon: const Icon(Icons.download),
+                  label: const Text('Fetch'),
+                ),
+              ],
             ),
     );
   }
@@ -154,13 +161,6 @@ class _AdminChannelScreenState extends State<AdminChannelScreen> {
     );
   }
 
-  /// Newest first, undated content last.
-  static int _byPublishedDesc(Content a, Content b) {
-    if (a.published == null) return b.published == null ? 0 : 1;
-    if (b.published == null) return -1;
-    return b.published!.compareTo(a.published!);
-  }
-
   // * Videos Card ------------------------------------------------------------
 
   bool videoCardExpanded = true;
@@ -179,15 +179,13 @@ class _AdminChannelScreenState extends State<AdminChannelScreen> {
             title: const Text('Add new video'),
             onTap: () => ContentEditor.video(context, ctlr),
           ),
-        if (videoCardExpanded)
-          ...?(ctlr.channel?.videos.values.toList()?..sort(_byPublishedDesc))?.map(
-            (video) => videoTile(video),
-          ),
-        if (videoCardExpanded && ctlr.channel?.videos.isEmpty == true)
+        if (videoCardExpanded) ...ctlr.videos.map((video) => videoTile(video)),
+        if (videoCardExpanded && ctlr.videos.isEmpty)
           Padding(
             padding: .all(16),
             child: Text('No videos found', style: Theme.of(context).textTheme.bodyMedium),
           ),
+        if (videoCardExpanded && ctlr.hasMore) loadMoreTile(),
       ],
     ),
   );
@@ -199,6 +197,41 @@ class _AdminChannelScreenState extends State<AdminChannelScreen> {
     trailing: Icon(deleteMode ? Icons.delete : Icons.chevron_right),
     onTap: () => deleteMode ? ctlr.removeVideo(video) : ContentEditor.video(context, ctlr, video),
   );
+
+  Widget loadMoreTile() => ListTile(
+    leading: ctlr.loadingMore
+        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+        : const Icon(Icons.expand_more),
+    title: const Text('Load older videos'),
+    onTap: ctlr.loadingMore ? null : () => ctlr.loadMoreVideos(),
+  );
+
+  /// A rebuild throws away the stored blocks, so it asks first.
+  Future<void> confirmRebuild() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Rebuild from YouTube?'),
+        content: const Text(
+          'This deletes every stored video block for this channel and downloads '
+          'the full history again. Local edits will be lost.',
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Rebuild'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && mounted) {
+      await ctlr.fetchChannelContentFromYoutube(context, rebuild: true);
+    }
+  }
 
   // * Series Card ------------------------------------------------------------
 
@@ -220,7 +253,7 @@ class _AdminChannelScreenState extends State<AdminChannelScreen> {
           ),
 
         if (seriesCardExpanded)
-          ...?(ctlr.channel?.series.values.toList()?..sort(_byPublishedDesc))?.map(
+          ...?(ctlr.channel?.series.values.toList()?..sort(Content.byPublishedDesc))?.map(
             (series) => seriesTile(series),
           ),
         if (seriesCardExpanded && ctlr.channel?.series.isEmpty == true)

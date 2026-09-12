@@ -11,15 +11,18 @@ Every Flutter app ships its config to end users; anyone can extract strings from
 ### What lives in `.env` (gitignored)
 
 - `FIREBASE_WEB_API_KEY`, `FIREBASE_ANDROID_API_KEY`, `FIREBASE_IOS_API_KEY`
-- `YOUTUBE_API_KEY`
 
-Consumed at **build time** via `--dart-define-from-file=.env` (locally) or per-key `--dart-define=KEY=...` (CI). The Dart code reads them as compile-time constants via `String.fromEnvironment(...)` in [lib/firebase_options.dart](../lib/firebase_options.dart) and [lib/src/services/config_service.dart](../lib/src/services/config_service.dart).
+[lib/firebase_options.dart](../lib/firebase_options.dart) resolves each key from `.env` first and falls back to a `String.fromEnvironment(...)` compile-time constant, which is how CI supplies them (`--dart-define=KEY=...`).
 
-`.env` is **not** loaded at runtime and **not** bundled as a Flutter asset — earlier iterations of this repo used `flutter_dotenv`, which ships `.env` to `build/web/assets/.env` (publicly fetchable). Compile-time defines avoid that footgun. The values still end up in the minified JS / native binary, so GCP key restrictions remain the real safeguard (see below).
+⚠️ `.env` **is** declared as a Flutter asset in `pubspec.yaml` and **is** loaded at runtime by `flutter_dotenv` in [lib/main.dart](../lib/main.dart). On web that publishes it at `build/web/assets/.env`, publicly fetchable. These three Firebase keys are therefore exposed by design, exactly as they are in any built binary — GCP key restrictions are the only thing protecting them, so the restrictions below are mandatory, not advisory.
 
-### What lives in Firebase Remote Config
+### What lives in Secret Manager
 
-The YouTube API key has a secondary home in Remote Config (`youtube_api_key`). On mobile, `ConfigService.getYouTubeApiKey()` prefers `.env` but falls back to Remote Config — so the key can be rotated in production without shipping a new build.
+`YOUTUBE_API_KEY`. It is read only by the Cloud Functions in [functions/](../functions/), which are the sole callers of the YouTube Data API, and never reaches any client. Set or rotate it with:
+
+```bash
+firebase functions:secrets:set YOUTUBE_API_KEY
+```
 
 ### What lives in gitignored platform config files
 
@@ -38,9 +41,9 @@ Before flipping the repo public — or shipping any production build — set the
 | `FIREBASE_WEB_API_KEY`     | HTTP referrers: production domain + `localhost:*`        | Identity Toolkit, Firebase, Firestore, Identity Platform, Token Service, Secure Token   |
 | `FIREBASE_ANDROID_API_KEY` | Android apps: `com.tldrnews.app` + debug + release SHA-1 | Same set as web                                                                         |
 | `FIREBASE_IOS_API_KEY`     | iOS apps: bundle ID `com.tldrnews.app`                   | Same set as web                                                                         |
-| `YOUTUBE_API_KEY`          | Whichever platform calls it (admin tooling)              | **YouTube Data API v3 only**                                                            |
+| `YOUTUBE_API_KEY`          | None needed — server-side only, held in Secret Manager   | **YouTube Data API v3 only**                                                            |
 
-The YouTube key is the most dangerous — quota is billable. Restrict it tightly and monitor usage.
+Quota on the YouTube key is billable. It never ships to a client, but restrict it to the one API and monitor usage.
 
 ## Firestore rules summary
 
@@ -51,7 +54,11 @@ The YouTube key is the most dangerous — quota is billable. Restrict it tightly
 | `accounts/{uid}`      | self only                                  | self only                   |
 | `meta/{uid}`          | any authenticated user                     | admin only                  |
 | `channels/{cid}`      | public                                     | admin only                  |
+| `channels/{cid}/videos/{blockId}` | public                         | admin only                  |
+| `{path=**}/videos/{blockId}` | public (collection group)           | admin only                  |
 | `{allPaths=**}`       | admin                                      | admin                       |
+
+Video blocks need both a direct and a collection-group read rule: the `/video/:id` lookup queries across every channel's `videos` subcollection at once. Writes come from the Cloud Function, which bypasses rules entirely; the admin branch covers edits made in the admin panel.
 
 `isAdmin()` reads `meta/{request.auth.uid}.admin`. The wildcard rule grants admins blanket access; specific rules grant additional access to non-admins. Firestore evaluates rules as a logical OR, so combining specific + wildcard does what you'd expect.
 
@@ -69,7 +76,7 @@ App Check is the only mitigation that meaningfully reduces abuse from a stolen A
 
 ## Going public — pre-flight checklist
 
-- [ ] All four keys rotated (`.env` updated, Firebase Remote Config updated, old keys deleted in GCP).
+- [ ] All four keys rotated (`.env` updated, `firebase functions:secrets:set YOUTUBE_API_KEY` re-run, old keys deleted in GCP).
 - [ ] All four keys restricted (API + application restrictions).
 - [ ] Firestore rules deployed (`firebase deploy --only firestore:rules`).
 - [ ] No `AIza` strings in tracked files: `git ls-files | xargs grep -nE 'AIza[0-9A-Za-z_-]{35}'` returns nothing.

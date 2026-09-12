@@ -1,7 +1,6 @@
 import 'package:tldrnews_app/src/objects/channel/snippets.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:tldrnews_app/src/objects/content/series.dart';
-import 'package:tldrnews_app/src/objects/content/youtube_video.dart';
 
 part 'channel.g.dart';
 
@@ -12,15 +11,12 @@ class Channel extends ChannelSnippet {
     required super.name,
     required this.channelUrl,
     this.description,
-    Map<String, YoutubeVideo>? videos,
     Map<String, Series>? series,
-  }) : videos = videos ?? {},
-       series = series ?? {};
+  }) : series = series ?? {};
 
   final String channelUrl;
   final String? description;
 
-  final Map<String, YoutubeVideo> videos;
   final Map<String, Series> series;
 
   /// Deep copy. Callers that mutate a [Channel] must work on one of these —
@@ -30,7 +26,6 @@ class Channel extends ChannelSnippet {
     name: name,
     channelUrl: channelUrl,
     description: description,
-    videos: videos.map((k, v) => MapEntry(k, v.copy())),
     series: series.map((k, v) => MapEntry(k, v.copy())),
   );
 
@@ -38,7 +33,6 @@ class Channel extends ChannelSnippet {
 
   Map<String, dynamic> toJson() {
     final json = _$ChannelToJson(this);
-    json['videos'] = videos.map((k, v) => MapEntry(k, v.toJson()));
     json['series'] = series.map((k, v) => MapEntry(k, v.toJson()));
     return json;
   }

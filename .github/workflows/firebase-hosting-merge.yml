@@ -32,13 +32,11 @@ jobs:
           FIREBASE_WEB_API_KEY: ${{ secrets.FIREBASE_WEB_API_KEY }}
           FIREBASE_ANDROID_API_KEY: ${{ secrets.FIREBASE_ANDROID_API_KEY }}
           FIREBASE_IOS_API_KEY: ${{ secrets.FIREBASE_IOS_API_KEY }}
-          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
         run: |
           flutter build web \
             --dart-define=FIREBASE_WEB_API_KEY="$FIREBASE_WEB_API_KEY" \
             --dart-define=FIREBASE_ANDROID_API_KEY="$FIREBASE_ANDROID_API_KEY" \
-            --dart-define=FIREBASE_IOS_API_KEY="$FIREBASE_IOS_API_KEY" \
-            --dart-define=YOUTUBE_API_KEY="$YOUTUBE_API_KEY"
+            --dart-define=FIREBASE_IOS_API_KEY="$FIREBASE_IOS_API_KEY"
 
       # Deploy the build/web output to Firebase Hosting as static files.
       - uses: FirebaseExtended/action-hosting-deploy@v0

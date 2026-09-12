@@ -1,0 +1,99 @@
+"""Orchestration: fetch from YouTube, diff against what is stored, write blocks."""
+
+import logging
+
+from firebase_admin import firestore
+
+from . import block_store
+from .youtube_client import YouTubeClient, YouTubeError
+
+log = logging.getLogger(__name__)
+
+
+class ChannelNotFound(Exception):
+    pass
+
+
+def sync(cid, api_key, rebuild=False):
+    """Ingest a channel's videos and series. Returns a summary of what changed."""
+    db = firestore.client()
+    channel = _channel_data(db, cid)
+
+    client = YouTubeClient(api_key)
+    stop_at = None if rebuild else _watermark(db, cid)
+
+    content = client.fetch_channel_content(
+        channel['channelUrl'],
+        exclude_ids=() if rebuild else block_store.known_video_ids(block_store.load_meta(db, cid)),
+        stop_at=stop_at,
+    )
+    videos = content['videos']
+    series = content['series']
+
+    if rebuild:
+        blocks_written = block_store.rebuild(db, cid, videos)
+    else:
+        blocks_written = block_store.insert(db, cid, videos)
+
+    _write_series(db, cid, series)
+
+    summary = {
+        'addedVideos': len(videos),
+        'addedSeries': len(series),
+        'blocksWritten': blocks_written,
+        'quotaUnits': client.quota_used,
+    }
+    log.info('Synced %s: %s', cid, summary)
+    return summary
+
+
+def resolve_video(url, api_key):
+    return _json_safe(YouTubeClient(api_key).video_url_to_video(url))
+
+
+def resolve_series(url, api_key):
+    return _json_safe(YouTubeClient(api_key).playlist_url_to_series(url))
+
+
+def channel_ids():
+    return [doc.id for doc in firestore.client().collection('channels').list_documents()]
+
+
+#* Private Methods -----------------------------------------------------------
+
+
+def _json_safe(item):
+    """Callable responses are JSON, so dates go out as ISO strings."""
+    published = item.get('published')
+    return {**item, 'published': published.isoformat() if published else None}
+
+
+def _channel_data(db, cid):
+    snapshot = db.collection('channels').document(cid).get()
+    if not snapshot.exists:
+        raise ChannelNotFound(f'Channel "{cid}" does not exist')
+
+    data = snapshot.to_dict() or {}
+    if not data.get('channelUrl'):
+        raise ChannelNotFound(f'Channel "{cid}" has no channelUrl set')
+    return data
+
+
+def _watermark(db, cid):
+    meta = block_store.load_meta(db, cid)
+    return meta[-1]['newest'] if meta else None
+
+
+def _write_series(db, cid, series):
+    if not series:
+        return
+    entries = {
+        item['id']: {
+            'title': item['title'],
+            'published': item['published'],
+            'description': item['description'],
+            'imageUrl': item['imageUrl'],
+        }
+        for item in series
+    }
+    db.collection('channels').document(cid).set({'series': entries}, merge=True)

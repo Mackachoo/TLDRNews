@@ -55,7 +55,7 @@ The app reads `.env` at runtime via `flutter_dotenv` when present, and falls bac
 - **`FIREBASE_WEB_API_KEY`** — Firebase console, *Project settings → Web app → SDK setup → `apiKey`*.
 - **`FIREBASE_ANDROID_API_KEY`** — `android/app/google-services.json`, field `client[0].api_key[0].current_key`.
 - **`FIREBASE_IOS_API_KEY`** — `ios/Runner/GoogleService-Info.plist`, field `API_KEY`.
-- **`YOUTUBE_API_KEY`** — [Google Cloud Credentials](https://console.cloud.google.com/apis/credentials): create a new API key and restrict it to **YouTube Data API v3**.
+The YouTube key is **not** one of these — it lives in Secret Manager and is only ever read by the Cloud Function (see step 6).
 
 ## 5. Restrict your keys (do this before going public)
 
@@ -64,7 +64,7 @@ In Google Cloud → Credentials, edit each key:
 - **Web key** — Application restriction: HTTP referrers — `localhost:*`, your deploy domain.
 - **Android key** — Application restriction: Android apps — package `com.tldrnews.app` + your debug + release SHA-1 fingerprints (`./gradlew signingReport`).
 - **iOS key** — Application restriction: iOS apps — bundle ID `com.tldrnews.app`.
-- **YouTube key** — API restriction: YouTube Data API v3 only. Application restriction matching whichever platform calls it (admin web/mobile).
+- **YouTube key** — API restriction: YouTube Data API v3 only. It is called from the Cloud Function, never the client, so it needs no application restriction.
 
 Without restrictions, a leaked key is fully usable by anyone.
 
@@ -79,6 +79,30 @@ Deploy the Firestore rules and indexes:
 
 ```bash
 firebase deploy --only firestore:rules,firestore:indexes
+```
+
+### Cloud Functions
+
+Video ingestion runs server-side. Create a YouTube Data API v3 key in
+[Google Cloud Credentials](https://console.cloud.google.com/apis/credentials),
+store it as a secret, and deploy:
+
+```bash
+firebase functions:secrets:set YOUTUBE_API_KEY
+firebase deploy --only functions
+```
+
+Then open `/admin/channel/<id>` and press **Rebuild** once per channel to pull
+the full history into video blocks. **Fetch** afterwards only picks up what is
+new, and the daily schedule does the same automatically.
+
+To work on the functions locally:
+
+```bash
+cd functions
+python3 -m venv venv
+venv/bin/pip install -r requirements.txt -r requirements-dev.txt
+venv/bin/python -m pytest tests
 ```
 
 ## 7. Run
