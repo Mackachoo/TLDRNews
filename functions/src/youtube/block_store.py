@@ -9,7 +9,7 @@ middle of history never renumbers anything.
 import logging
 from datetime import datetime, timezone
 
-from google.cloud import firestore
+from ..utils import firebase_client as fb
 
 BLOCK_TARGET = 200
 BLOCK_WARN = 350
@@ -29,7 +29,7 @@ def block_id(moment):
 
 def load_meta(db, cid):
     """Every block's metadata, oldest first. Never pulls the `videos` maps."""
-    query = _blocks(db, cid).select(META_FIELDS).order_by('startAt')
+    query = fb.video_blocks(cid, db).select(META_FIELDS).order_by('startAt')
     return [_meta_from_doc(doc) for doc in query.stream()]
 
 
@@ -77,7 +77,7 @@ def rebuild(db, cid, videos):
     batch = db.batch()
     for position, chunk in enumerate(chunks, start=1):
         start = chunk[0]['published']
-        batch.set(_blocks(db, cid).document(block_id(start)), _build_block(start, chunk))
+        batch.set(fb.video_blocks(cid, db).document(block_id(start)), _build_block(start, chunk))
         if position % BATCH_BLOCKS == 0:
             batch.commit()
             batch = db.batch()
@@ -122,7 +122,7 @@ def _route(meta, staged, video):
 
 
 def _merge_block(db, cid, start_id, additions):
-    ref = _blocks(db, cid).document(start_id)
+    ref = fb.video_blocks(cid, db).document(start_id)
     snapshot = ref.get()
     current = snapshot.to_dict() if snapshot.exists else {}
 
@@ -170,22 +170,18 @@ def _refresh_channel(db, cid, clear_legacy=False):
         'lastSyncedAt': datetime.now(timezone.utc),
     }
     if clear_legacy:
-        updates['videos'] = firestore.DELETE_FIELD
-    db.collection('channels').document(cid).set(updates, merge=True)
+        updates['videos'] = fb.DELETE_FIELD
+    fb.merge(fb.channel(cid, db), updates)
 
 
 def _delete_all(db, cid):
     batch = db.batch()
-    for position, doc in enumerate(_blocks(db, cid).list_documents(), start=1):
+    for position, doc in enumerate(fb.video_blocks(cid, db).list_documents(), start=1):
         batch.delete(doc)
         if position % 200 == 0:
             batch.commit()
             batch = db.batch()
     batch.commit()
-
-
-def _blocks(db, cid):
-    return db.collection('channels').document(cid).collection('videos')
 
 
 def _meta_from_doc(doc):

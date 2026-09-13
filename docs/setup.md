@@ -92,6 +92,13 @@ firebase functions:secrets:set YOUTUBE_API_KEY
 firebase deploy --only functions
 ```
 
+Party approval signs its challenges with a second secret. Any long random string
+works; rotating it invalidates every open challenge but no existing membership:
+
+```bash
+openssl rand -hex 32 | firebase functions:secrets:set PARTY_APPROVAL_SECRET
+```
+
 Then open `/admin/channel/<id>` and press **Rebuild** once per channel to pull
 the full history into video blocks. **Fetch** afterwards only picks up what is
 new, and the daily schedule does the same automatically.

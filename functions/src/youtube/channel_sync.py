@@ -2,8 +2,7 @@
 
 import logging
 
-from firebase_admin import firestore
-
+from ..utils import firebase_client as fb
 from . import block_store
 from .youtube_client import YouTubeClient, YouTubeError
 
@@ -16,7 +15,7 @@ class ChannelNotFound(Exception):
 
 def sync(cid, api_key, rebuild=False):
     """Ingest a channel's videos and series. Returns a summary of what changed."""
-    db = firestore.client()
+    db = fb.db()
     channel = _channel_data(db, cid)
 
     client = YouTubeClient(api_key)
@@ -60,7 +59,7 @@ def resolve_series(url, api_key):
 
 
 def channel_ids():
-    return [doc.id for doc in firestore.client().collection('channels').list_documents()]
+    return fb.channel_ids()
 
 
 #* Private Methods -----------------------------------------------------------
@@ -73,11 +72,10 @@ def _json_safe(item):
 
 
 def _channel_data(db, cid):
-    snapshot = db.collection('channels').document(cid).get()
-    if not snapshot.exists:
+    data = fb.read(fb.channel(cid, db))
+    if data is None:
         raise ChannelNotFound(f'Channel "{cid}" does not exist')
 
-    data = snapshot.to_dict() or {}
     if not data.get('channelUrl'):
         raise ChannelNotFound(f'Channel "{cid}" has no channelUrl set')
     return data
@@ -91,15 +89,16 @@ def _watermark(db, cid):
 def _record_source(db, cid, source):
     """Stores which YouTube channel the URL actually resolved to, so a channel
     pointed at the wrong URL is visible in the data instead of silently wrong."""
-    previous = db.collection('channels').document(cid).get().to_dict() or {}
+    previous = fb.read(fb.channel(cid, db)) or {}
     if previous.get('youtubeChannelId') not in (None, source['id']):
         log.warning(
             '%s now resolves to %r (%s), previously %s — check its channelUrl',
             cid, source['title'], source['id'], previous['youtubeChannelId'],
         )
 
-    db.collection('channels').document(cid).set(
-        {'youtubeChannelId': source['id'], 'youtubeChannelTitle': source['title']}, merge=True
+    fb.merge(
+        fb.channel(cid, db),
+        {'youtubeChannelId': source['id'], 'youtubeChannelTitle': source['title']},
     )
 
 
@@ -115,4 +114,4 @@ def _write_series(db, cid, series):
         }
         for item in series
     }
-    db.collection('channels').document(cid).set({'series': entries}, merge=True)
+    fb.merge(fb.channel(cid, db), {'series': entries})

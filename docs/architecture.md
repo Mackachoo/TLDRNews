@@ -58,7 +58,8 @@ Stored in Cloud Firestore (`eur3`). All dates are `Timestamp`s.
 
 ```text
 accounts/{uid}    — user profile, preferences (per-user, owner-only RW)
-meta/{uid}        — { admin: bool, ... } (readable by any auth'd user, writable only by admins)
+meta/{uid}        — { admin: bool, party: Timestamp, partyAttempts: [...] }
+                    (readable by any auth'd user, writable only by functions and admins)
 channels/{cid}    — channel doc (public read, function-only write)
   ├─ name, channelUrl, description
   ├─ series: { playlistId → Series }

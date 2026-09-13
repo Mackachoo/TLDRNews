@@ -33,7 +33,8 @@ functions/
 ├─ main.py      trigger definitions only
 └─ src/
    ├─ youtube/  YouTube ingest: API client, block store, sync orchestration
-   └─ utils/    shared helpers for callables
+   ├─ party/    TLDR Party membership approval
+   └─ utils/    firebase_client (all Firestore access) and callable guards
 firebase/       firestore.rules, firestore.indexes.json
 ```
 

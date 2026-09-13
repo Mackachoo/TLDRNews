@@ -70,6 +70,17 @@ class AuthController with ChangeNotifier {
     }
   }
 
+  Future refresh() async {
+    try {
+      await AuthService.currentUser?.reload();
+      account = await FirestoreService.account.retrieve(AuthService.currentUser!.uid);
+      meta = await FirestoreService.meta.retrieve(AuthService.currentUser!.uid);
+      notifyListeners();
+    } catch (e) {
+      debugPrint('AuthController.refresh: Failed to refresh auth state: $e');
+    }
+  }
+
   Future initializeUser(BuildContext context, {Map<String, bool>? consent}) async {
     try {
       showLoading(context);
@@ -170,22 +181,6 @@ class AuthController with ChangeNotifier {
 
   Future signInWithApple(BuildContext context) async =>
       requestAuthentication(context, _service.signInWithApple);
-
-  //* Party Methods ----------------------------------------------
-
-  // Picks a random video from TLDR Party from the last 14 days, then requests the URL for the video. If it matches the videoId,
-  //the user becomes a TLDR Party member. Instead of this being a bool it is now a date. It is valid as long as the user Party
-  //membership date is with 90 days.
-  void checkPartyMembership(BuildContext context) async {
-    try {} catch (e) {
-      debugPrint('Failed to check party membership: $e');
-      if (context.mounted) {
-        Message.error(context, 'Failed to check party membership');
-      }
-    } finally {
-      if (context.mounted) Navigator.of(context, rootNavigator: true).pop();
-    }
-  }
 
   //* Additional Methods ------------------------------------------
 

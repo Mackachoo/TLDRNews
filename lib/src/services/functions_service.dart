@@ -1,6 +1,7 @@
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:tldrnews_app/src/objects/content/series.dart';
+import 'package:tldrnews_app/src/objects/content/video.dart';
 import 'package:tldrnews_app/src/objects/content/youtube_video.dart';
 import 'package:tldrnews_app/src/utils/extensions/core.dart';
 
@@ -31,9 +32,19 @@ class FunctionsService {
     return data == null ? null : Series.fromJson(data);
   }
 
+  // *. Party Approval -------------------------------------------------
+
+  static Future<Json?> requestVideoForApproval() async {
+    return await _call('request_party_video_for_approval');
+  }
+
+  static Future<Json?> approvePartyVideo(String videoUrl, String hash) async {
+    return await _call('approve_party_video', {'url': videoUrl, 'hash': hash});
+  }
+
   //* Private Methods --------------------------------------------------
 
-  static Future<Json?> _call(String name, Json payload) async {
+  static Future<Json?> _call(String name, [Json payload = const {}]) async {
     try {
       final result = await _functions.httpsCallable(name).call<Object?>(payload);
       return Json.from(result.data as Map);

@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:tldrnews_app/src/objects/content/_content.dart';
 import 'package:tldrnews_app/src/objects/content/series.dart';
@@ -126,6 +127,7 @@ class _AdminChannelScreenState extends State<AdminChannelScreen> {
                 ),
               ],
             ),
+      onTap: () => Clipboard.setData(ClipboardData(text: ctlr.channel?.channelUrl ?? '')),
     );
   }
 
