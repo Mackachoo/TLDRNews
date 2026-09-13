@@ -27,15 +27,10 @@ service cloud.firestore {
       allow write:  if false;
     }
 
-    // Video blocks - Gated with the channel they belong to
+    // Video blocks - Public can read all but Party, only the function writes
     match /channels/{cid}/videos/{blockId} {
       allow read:   if cid != 'party' || isPartyMember();
       allow write:  if false;
-    }
-
-    // Video blocks by collection group, for resolving a video id to its block
-    match /{path=**}/videos/{blockId} {
-      allow read:   if path != /channels/party || isPartyMember();
     }
 
     //* Helper Functions --------------------------------------------

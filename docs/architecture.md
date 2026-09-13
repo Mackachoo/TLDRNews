@@ -48,7 +48,7 @@ State management is intentionally low-tech: `ChangeNotifier` + `ListenableBuilde
 | `/admin`            | `AdminScreen`                | Admin home (gated)               |
 | `/admin/users`      | `AdminUsersScreen`           | Manage admin flags               |
 | `/admin/channel/:id`| `AdminChannelScreen`         | Edit channel + YouTube ingest    |
-| `/video/:id`        | `VideoScreen`                | Full-screen player (outside shell)|
+| `/channel/:cid/video/:id` | `VideoScreen`          | Full-screen player (outside shell)|
 
 A `redirect` callback rejects `/admin/**` for non-admin users.
 
@@ -93,10 +93,13 @@ map is the only source of truth and Dart and Python compute the rest identically
 | Newest block | `orderBy('startAt', desc).limit(1)` |
 | Next older block | `where('startAt', <, current).orderBy('startAt', desc).limit(1)` |
 | Block covering a date | `where('startAt', <=, date).orderBy('startAt', desc).limit(1)` |
-| Block holding a video id | `collectionGroup('videos').where('videoIds', arrayContains: id).limit(1)` |
+| Block holding a video id, within its channel | `channels/{cid}/videos.where('videoIds', arrayContains: id).limit(1)` |
 
-The last needs the `videoIds` field override declared in
-[firestore.indexes.json](../firebase/firestore.indexes.json).
+The video-id lookup needs the `videoIds` field override declared in
+[firestore.indexes.json](../firebase/firestore.indexes.json). It is scoped to
+one channel rather than a `collectionGroup` query across all of them — the URL
+carries `cid`, so the query and the rule that gates it both stay bound to a
+single, known channel; see [security.md](security.md#video-links) for why.
 
 ### Reading blocks in the app
 
@@ -106,8 +109,8 @@ holds the loaded blocks and walks them newest first, one per request.
 requests the next block as the scroll nears the end, and again after layout when
 a block was too short to fill the screen.
 
-A `/video/:id` link for a video in a block nobody has paged in yet falls back to
-the collection-group lookup, so shared links resolve regardless of scroll depth.
+A `/channel/:cid/video/:id` link for a video in a block nobody has paged in yet
+falls back to the query above, so shared links resolve regardless of scroll depth.
 
 Dart classes live in [lib/src/objects/](../lib/src/objects/) and use
 `json_serializable`. Regenerate with:

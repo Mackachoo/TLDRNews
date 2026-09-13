@@ -4,14 +4,15 @@ import 'package:tldrnews_app/src/objects/content/youtube_video.dart';
 import 'package:tldrnews_app/src/utils/extensions/context.dart';
 
 class VideoWidget extends StatelessWidget {
-  const VideoWidget(this.video, {super.key});
+  const VideoWidget(this.cid, this.video, {super.key});
 
+  final String cid;
   final YoutubeVideo video;
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () => context.push('/video/${video.id}'),
+      onTap: () => context.push('/channel/$cid/video/${video.id}'),
       child: Column(
         spacing: 4,
         children: [

@@ -107,23 +107,15 @@ class ChannelService extends FirestoreCore {
     'older',
   );
 
-  /// Finds the channel and block holding [videoId], for links that arrive
-  /// before the containing block has been paged in.
-  Future<(String, VideoBlock)?> blockContainingVideo(String videoId) async {
+  /// Finds the block in [cid] holding [videoId], for links that arrive before
+  /// the containing block has been paged in.
+  Future<VideoBlock?> blockContainingVideo(String cid, String videoId) async {
     try {
-      final snapshot = await firestore
-          .collectionGroup('videos')
-          .where('videoIds', arrayContains: videoId)
-          .limit(1)
-          .get();
+      final snapshot = await videoBlocks(
+        cid,
+      ).where('videoIds', arrayContains: videoId).limit(1).get();
       if (snapshot.docs.isEmpty) return null;
-
-      final doc = snapshot.docs.first;
-      final block = _deserialize(doc);
-      final cid = doc.reference.parent.parent?.id;
-      if (block == null || cid == null) return null;
-
-      return (cid, block);
+      return _deserialize(snapshot.docs.first);
     } catch (error) {
       debugPrint('ChannelService.blockContainingVideo: $error');
       return null;

@@ -10,8 +10,9 @@ import 'package:tldrnews_app/src/widgets/youtube_player.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class VideoScreen extends StatefulWidget {
-  const VideoScreen(this.videoId, {super.key});
+  const VideoScreen({required this.cid, required this.videoId, super.key});
 
+  final String cid;
   final String videoId;
 
   @override
@@ -21,23 +22,22 @@ class VideoScreen extends StatefulWidget {
 class _VideoScreenState extends State<VideoScreen> {
   late final Future<(Channel, YoutubeVideo)?> video = retrieveVideo();
 
-  /// Blocks already paged in answer immediately; anything else — a shared link,
-  /// or a video too old to have been scrolled to — is found by its block.
+  /// A block already paged in for this channel answers immediately; anything
+  /// else — a shared link, or a video too old to have been scrolled to — is
+  /// found by querying its channel directly for the block that holds it.
   Future<(Channel, YoutubeVideo)?> retrieveVideo() async {
-    for (final channelCtlr in App.ctlr.channels.values) {
-      final channel = channelCtlr.channel;
-      if (channel == null) continue;
-      for (final block in channelCtlr.blocks) {
+    final loaded = App.ctlr.channels[widget.cid];
+    if (loaded?.channel != null) {
+      for (final block in loaded!.blocks) {
         final video = block.videos[widget.videoId];
-        if (video != null) return (channel, video);
+        if (video != null) return (loaded.channel!, video);
       }
     }
 
-    final found = await FirestoreService.channel.blockContainingVideo(widget.videoId);
-    if (found == null) return null;
+    final block = await FirestoreService.channel.blockContainingVideo(widget.cid, widget.videoId);
+    if (block == null) return null;
 
-    final (cid, block) = found;
-    final channel = await FirestoreService.channel.retrieve(cid);
+    final channel = await FirestoreService.channel.retrieve(widget.cid);
     final video = block.videos[widget.videoId];
     if (channel == null || video == null) return null;
 

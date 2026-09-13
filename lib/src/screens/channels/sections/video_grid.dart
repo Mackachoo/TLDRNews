@@ -57,7 +57,7 @@ class _VideoGridState extends State<VideoGrid> {
       footer: widget.ctlr.loadingMore
           ? const Padding(padding: .all(16), child: CircularProgressIndicator())
           : null,
-      children: widget.ctlr.videos.map((video) => VideoWidget(video)).toList(),
+      children: widget.ctlr.videos.map((video) => VideoWidget(widget.ctlr.cid, video)).toList(),
     );
   }
 }

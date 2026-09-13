@@ -91,12 +91,13 @@ class App extends StatelessWidget {
                   ),
                 ),
                 GoRoute(
-                  path: 'video/:id',
+                  path: 'channel/:cid/video/:id',
                   name: 'video',
                   pageBuilder: (context, state) => page(
                     state,
                     VideoScreen(
-                      state.pathParameters['id']!,
+                      cid: state.pathParameters['cid']!,
+                      videoId: state.pathParameters['id']!,
                       key: ValueKey(state.pathParameters['id']),
                     ),
                   ),

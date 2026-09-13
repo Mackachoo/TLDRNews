@@ -62,16 +62,35 @@ Quota on the YouTube key is billable. It never ships to a client, but restrict i
 | --------------------- | ------------------------------------------ | --------------------------- |
 | `accounts/{uid}`      | self only                                  | self only                   |
 | `meta/{uid}`          | any authenticated user                     | admin only (+ functions)    |
-| `channels/{cid}`      | public                                     | admin only                  |
-| `channels/{cid}/videos/{blockId}` | public                         | admin only                  |
-| `{path=**}/videos/{blockId}` | public (collection group)           | admin only                  |
+| `channels/{cid}`      | public, except `party` (members only)      | admin only                  |
+| `channels/{cid}/videos/{blockId}` | public, except `party` (members only) | admin only              |
 | `{allPaths=**}`       | admin                                      | admin                       |
 
-Video blocks need both a direct and a collection-group read rule: the `/video/:id` lookup queries across every channel's `videos` subcollection at once. Writes come from the Cloud Function, which bypasses rules entirely; the admin branch covers edits made in the admin panel.
+The video-block rule gates on `cid`, so a party member reading `channels/party/videos/{blockId}` passes and everyone else is denied — see [Video links](#video-links) for why this single rule is enough. Writes come from the Cloud Function, which bypasses rules entirely; the admin branch covers edits made in the admin panel.
 
 `isAdmin()` reads `meta/{request.auth.uid}.admin`. The wildcard rule grants admins blanket access; specific rules grant additional access to non-admins. Firestore evaluates rules as a logical OR, so combining specific + wildcard does what you'd expect.
 
 **Known caveat:** if a user has no `meta/{uid}` doc at all, the `get(...)` inside `isAdmin()` will error, denying the request. That's safe by default but means new sign-ups need a `meta/{uid}` doc created before they can read anywhere that depends on `isAdmin()`. Bootstrap your first admin manually in the Firebase console.
+
+## Video links
+
+`/channel/:cid/video/:id` carries its channel in the URL, and
+`blockContainingVideo(cid, videoId)` in
+[channel_service.dart](../lib/src/services/firestore/channel_service.dart)
+queries only `channels/{cid}/videos`, so resolving a shared link is gated by
+the same rule as browsing the channel — including Party.
+
+This used to be a bare `/video/:id`, resolved by a `collectionGroup('videos')`
+query across every channel's blocks at once, gated by a rule matching
+`{path=**}/videos/{blockId}`. That doesn't work for Party: a wildcard segment
+like `path` only binds to the real document path on a direct `get`, not inside
+a query, so a rule trying to compare it (`path != /channels/party`) can't be
+proven false and the query is let through unfiltered. Verified against a live
+emulator, an anonymous `collectionGroup('videos')` query returned every Party
+block, including `imageUrl` — which embeds the YouTube video id, the exact
+answer the Party approval challenge exists to protect. Scoping the route to
+one channel removes the collection-group query entirely rather than trying to
+filter it, which Firestore rules cannot reliably do by path.
 
 ## Party membership approval
 
