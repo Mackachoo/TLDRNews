@@ -14,7 +14,7 @@ class ChannelSnippet {
 
   Widget button(BuildContext context, {bool desaturate = false, void Function(String id)? onTap}) {
     bool active = context.uri.pathSegments.isNotEmpty && context.uri.pathSegments.last == id;
-    final dim = desaturate && !active;
+    final dim = desaturate || active;
     return IconButton(
       padding: .zero,
       onPressed: !active && onTap != null ? () => onTap(id) : null,
