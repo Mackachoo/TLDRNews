@@ -41,7 +41,8 @@ class AppShell extends StatelessWidget {
       backgroundColor: context.colors.secondaryFixedDim,
       foregroundColor: context.colors.onSecondaryFixed,
       automaticallyImplyLeading: false,
-      leadingWidth: canGoBack ? 144 : 96,
+      leadingWidth: canGoBack ? 120 : 60,
+      titleSpacing: 0,
       leading: Row(
         mainAxisSize: .min,
         children: [
@@ -109,7 +110,7 @@ class AppShell extends StatelessWidget {
         .map(
           (c) => c.button(
             context,
-            desaturate: true,
+            desaturate: false,
             onTap: (id) => context.go('/${admin ? 'admin/channel' : 'channel'}/$id'),
           ),
         )
