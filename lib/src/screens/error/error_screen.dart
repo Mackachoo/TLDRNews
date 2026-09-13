@@ -20,7 +20,7 @@ class ErrorScreen extends StatelessWidget {
             aspectRatio: 1,
             child: IconButton(
               padding: .symmetric(horizontal: 8, vertical: 0),
-              onPressed: () => context.go('/'),
+              onPressed: () => context.forcePop(),
               icon: const Icon(Icons.arrow_back),
             ),
           ),

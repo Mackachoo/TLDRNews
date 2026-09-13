@@ -70,6 +70,17 @@ class AuthController with ChangeNotifier {
     }
   }
 
+  Future refresh() async {
+    try {
+      await AuthService.currentUser?.reload();
+      account = await FirestoreService.account.retrieve(AuthService.currentUser!.uid);
+      meta = await FirestoreService.meta.retrieve(AuthService.currentUser!.uid);
+      notifyListeners();
+    } catch (e) {
+      debugPrint('AuthController.refresh: Failed to refresh auth state: $e');
+    }
+  }
+
   Future initializeUser(BuildContext context, {Map<String, bool>? consent}) async {
     try {
       showLoading(context);

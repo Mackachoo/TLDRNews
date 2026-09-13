@@ -3,7 +3,8 @@ import 'package:material_ui/material_ui.dart';
 import 'package:tldrnews_app/src/objects/content/youtube_video.dart';
 import 'package:tldrnews_app/src/objects/content/series.dart';
 import 'package:tldrnews_app/src/screens/admin/screens/channel/channel_controller.dart';
-import 'package:tldrnews_app/src/services/youtube/youtube_service.dart';
+import 'package:tldrnews_app/src/services/functions_service.dart';
+import 'package:tldrnews_app/src/utils/message.dart';
 
 class ContentEditor {
   static void video(
@@ -14,7 +15,11 @@ class ContentEditor {
     if (video == null) {
       String? url = await getUrl(context, 'video');
       if (url == null) return;
-      video ??= await YouTubeService.videoUrlToYoutubeVideo(url);
+      video = await FunctionsService.resolveVideo(url);
+    }
+    if (video == null) {
+      if (context.mounted) Message.error(context, 'Could not load that video from YouTube.');
+      return;
     }
     if (context.mounted) {
       showDialog(
@@ -67,7 +72,11 @@ class ContentEditor {
     if (series == null) {
       String? url = await getUrl(context, 'series');
       if (url == null) return;
-      series = await YouTubeService.playlistUrlToSeries(url);
+      series = await FunctionsService.resolveSeries(url);
+    }
+    if (series == null) {
+      if (context.mounted) Message.error(context, 'Could not load that playlist from YouTube.');
+      return;
     }
     if (context.mounted) {
       showDialog(

@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:tldrnews_app/src/objects/content/_content.dart';
 import 'package:tldrnews_app/src/objects/content/series.dart';
@@ -57,10 +58,37 @@ class _AdminChannelScreenState extends State<AdminChannelScreen> {
     );
   }
 
+  /// A ListTile leading must be hard-sized. An unbounded one expands to the
+  /// full tile width, which trips ListTile's layout assert and then poisons hit
+  /// testing for the rest of the page. ChannelIcon is a bare AspectRatio, so it
+  /// fills whatever width it is offered.
+  Widget leadingBox(Widget child) => SizedBox.square(dimension: 40, child: child);
+
+  /// Thumbnails are hard-sized for the same reason, and fall back to a
+  /// placeholder because YouTube returns 404 for pulled videos.
+  Widget thumbnail(String url) => SizedBox(
+    width: 100,
+    height: 56,
+    child: Image.network(
+      url,
+      width: 100,
+      height: 56,
+      fit: BoxFit.cover,
+      // Decode at display size. hqdefault.jpg is 480x360, so without this each
+      // 100px thumbnail holds a ~690KB texture, and this page renders 50 of them.
+      cacheWidth: 200,
+      cacheHeight: 112,
+      errorBuilder: (context, error, stackTrace) => Container(
+        color: context.colors.surfaceContainerHighest,
+        child: Icon(Icons.image_not_supported, size: 20, color: context.colors.onSurfaceVariant),
+      ),
+    ),
+  );
+
   ListTile headingTile() {
     return ListTile(
       contentPadding: .all(16),
-      leading: ctlr.snippet!.icon,
+      leading: leadingBox(ctlr.snippet!.icon),
       title: Text('${ctlr.snippet!.name} Panel', style: Theme.of(context).textTheme.headlineMedium),
     );
   }
@@ -80,14 +108,26 @@ class _AdminChannelScreenState extends State<AdminChannelScreen> {
     return ListTile(
       leading: const Icon(Icons.cloud_download),
       title: const Text('Youtube Content'),
-      subtitle: const Text('Fetch recent videos and playlists from YouTube'),
+      subtitle: Text(
+        ctlr.channel?.channelUrl.isNotEmpty == true
+            ? 'Fetches from ${ctlr.channel!.channelUrl}'
+            : 'No channel URL set',
+      ),
       trailing: ctlr.isFetching
           ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-          : ElevatedButton.icon(
-              onPressed: () => ctlr.fetchChannelConntentFromYoutube(context),
-              icon: const Icon(Icons.download),
-              label: const Text('Fetch'),
+          : Row(
+              mainAxisSize: MainAxisSize.min,
+              spacing: 8,
+              children: [
+                TextButton(onPressed: () => confirmRebuild(), child: const Text('Rebuild')),
+                ElevatedButton.icon(
+                  onPressed: () => ctlr.fetchChannelContentFromYoutube(context),
+                  icon: const Icon(Icons.download),
+                  label: const Text('Fetch'),
+                ),
+              ],
             ),
+      onTap: () => Clipboard.setData(ClipboardData(text: ctlr.channel?.channelUrl ?? '')),
     );
   }
 
@@ -127,13 +167,6 @@ class _AdminChannelScreenState extends State<AdminChannelScreen> {
     );
   }
 
-  /// Newest first, undated content last.
-  static int _byPublishedDesc(Content a, Content b) {
-    if (a.published == null) return b.published == null ? 0 : 1;
-    if (b.published == null) return -1;
-    return b.published!.compareTo(a.published!);
-  }
-
   // * Videos Card ------------------------------------------------------------
 
   bool videoCardExpanded = true;
@@ -152,28 +185,59 @@ class _AdminChannelScreenState extends State<AdminChannelScreen> {
             title: const Text('Add new video'),
             onTap: () => ContentEditor.video(context, ctlr),
           ),
-        if (videoCardExpanded)
-          ...?(ctlr.channel?.videos.values.toList()?..sort(_byPublishedDesc))?.map(
-            (video) => videoTile(video),
-          ),
-        if (videoCardExpanded && ctlr.channel?.videos.isEmpty == true)
+        if (videoCardExpanded) ...ctlr.videos.map((video) => videoTile(video)),
+        if (videoCardExpanded && ctlr.videos.isEmpty)
           Padding(
             padding: .all(16),
             child: Text('No videos found', style: Theme.of(context).textTheme.bodyMedium),
           ),
+        if (videoCardExpanded && ctlr.hasMore) loadMoreTile(),
       ],
     ),
   );
 
   Widget videoTile(YoutubeVideo video) => ListTile(
     contentPadding: .all(8),
-    leading: video.imageUrl != null
-        ? Image.network(video.imageUrl!, width: 100, fit: BoxFit.cover)
-        : null,
+    leading: video.imageUrl == null ? null : thumbnail(video.imageUrl!),
     title: Text(video.title, style: Theme.of(context).textTheme.bodyMedium),
     trailing: Icon(deleteMode ? Icons.delete : Icons.chevron_right),
     onTap: () => deleteMode ? ctlr.removeVideo(video) : ContentEditor.video(context, ctlr, video),
   );
+
+  Widget loadMoreTile() => ListTile(
+    leading: ctlr.loadingMore
+        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+        : const Icon(Icons.expand_more),
+    title: const Text('Load older videos'),
+    onTap: ctlr.loadingMore ? null : () => ctlr.loadMoreVideos(),
+  );
+
+  /// A rebuild throws away the stored blocks, so it asks first.
+  Future<void> confirmRebuild() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Rebuild from YouTube?'),
+        content: const Text(
+          'This deletes every stored video block for this channel and downloads '
+          'the full history again. Local edits will be lost.',
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Rebuild'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && mounted) {
+      await ctlr.fetchChannelContentFromYoutube(context, rebuild: true);
+    }
+  }
 
   // * Series Card ------------------------------------------------------------
 
@@ -195,7 +259,7 @@ class _AdminChannelScreenState extends State<AdminChannelScreen> {
           ),
 
         if (seriesCardExpanded)
-          ...?(ctlr.channel?.series.values.toList()?..sort(_byPublishedDesc))?.map(
+          ...?(ctlr.channel?.series.values.toList()?..sort(Content.byPublishedDesc))?.map(
             (series) => seriesTile(series),
           ),
         if (seriesCardExpanded && ctlr.channel?.series.isEmpty == true)
@@ -209,9 +273,7 @@ class _AdminChannelScreenState extends State<AdminChannelScreen> {
 
   Widget seriesTile(Series series) => ListTile(
     contentPadding: .all(8),
-    leading: series.imageUrl != null
-        ? Image.network(series.imageUrl!, width: 100, fit: BoxFit.cover)
-        : null,
+    leading: series.imageUrl != null ? thumbnail(series.imageUrl!) : null,
     title: Text(series.title, style: Theme.of(context).textTheme.bodyMedium),
     trailing: Icon(deleteMode ? Icons.delete : Icons.chevron_right),
     onTap: () =>

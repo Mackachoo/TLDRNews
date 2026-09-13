@@ -41,7 +41,7 @@ class AdminScreen extends StatelessWidget {
                       .map(
                         (c) => IconButton(
                           padding: .zero,
-                          onPressed: () => context.go('/admin/channel/${c.id}'),
+                          onPressed: () => context.push('/admin/channel/${c.id}'),
                           icon: c.icon,
                         ),
                       )

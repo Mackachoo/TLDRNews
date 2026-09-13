@@ -11,15 +11,27 @@ Every Flutter app ships its config to end users; anyone can extract strings from
 ### What lives in `.env` (gitignored)
 
 - `FIREBASE_WEB_API_KEY`, `FIREBASE_ANDROID_API_KEY`, `FIREBASE_IOS_API_KEY`
-- `YOUTUBE_API_KEY`
 
-Consumed at **build time** via `--dart-define-from-file=.env` (locally) or per-key `--dart-define=KEY=...` (CI). The Dart code reads them as compile-time constants via `String.fromEnvironment(...)` in [lib/firebase_options.dart](../lib/firebase_options.dart) and [lib/src/services/config_service.dart](../lib/src/services/config_service.dart).
+Consumed at **build time** via `--dart-define-from-file=.env` (locally) or per-key `--dart-define=KEY=...` (CI). [lib/firebase_options.dart](../lib/firebase_options.dart) reads them as `String.fromEnvironment(...)` compile-time constants.
 
-`.env` is **not** loaded at runtime and **not** bundled as a Flutter asset — earlier iterations of this repo used `flutter_dotenv`, which ships `.env` to `build/web/assets/.env` (publicly fetchable). Compile-time defines avoid that footgun. The values still end up in the minified JS / native binary, so GCP key restrictions remain the real safeguard (see below).
+`.env` is **not** bundled as a Flutter asset and **not** loaded at runtime. An earlier iteration used `flutter_dotenv`, which ships `.env` to `build/web/assets/.env` where anyone can fetch it as a tidy labelled list; compile-time defines avoid that.
 
-### What lives in Firebase Remote Config
+This does **not** make the keys secret. They still sit in the minified `main.dart.js` and in every native binary, as they must for the client to reach Firebase at all — it only removes the trivially-scraped plaintext file. GCP key restrictions are the real safeguard, which makes the table below mandatory rather than advisory.
 
-The YouTube API key has a secondary home in Remote Config (`youtube_api_key`). On mobile, `ConfigService.getYouTubeApiKey()` prefers `.env` but falls back to Remote Config — so the key can be rotated in production without shipping a new build.
+### What lives in Secret Manager
+
+`YOUTUBE_API_KEY`. It is read only by the Cloud Functions in [functions/](../functions/), which are the sole callers of the YouTube Data API, and never reaches any client. Set or rotate it with:
+
+```bash
+firebase functions:secrets:set YOUTUBE_API_KEY
+```
+
+`PARTY_APPROVAL_SECRET`. The HMAC key for Party approval (below). Any long random
+string; rotating it closes every open challenge but revokes no membership.
+
+```bash
+openssl rand -hex 32 | firebase functions:secrets:set PARTY_APPROVAL_SECRET
+```
 
 ### What lives in gitignored platform config files
 
@@ -38,9 +50,9 @@ Before flipping the repo public — or shipping any production build — set the
 | `FIREBASE_WEB_API_KEY`     | HTTP referrers: production domain + `localhost:*`        | Identity Toolkit, Firebase, Firestore, Identity Platform, Token Service, Secure Token   |
 | `FIREBASE_ANDROID_API_KEY` | Android apps: `com.tldrnews.app` + debug + release SHA-1 | Same set as web                                                                         |
 | `FIREBASE_IOS_API_KEY`     | iOS apps: bundle ID `com.tldrnews.app`                   | Same set as web                                                                         |
-| `YOUTUBE_API_KEY`          | Whichever platform calls it (admin tooling)              | **YouTube Data API v3 only**                                                            |
+| `YOUTUBE_API_KEY`          | None needed — server-side only, held in Secret Manager   | **YouTube Data API v3 only**                                                            |
 
-The YouTube key is the most dangerous — quota is billable. Restrict it tightly and monitor usage.
+Quota on the YouTube key is billable. It never ships to a client, but restrict it to the one API and monitor usage.
 
 ## Firestore rules summary
 
@@ -49,13 +61,67 @@ The YouTube key is the most dangerous — quota is billable. Restrict it tightly
 | Path                  | Read                                       | Write                       |
 | --------------------- | ------------------------------------------ | --------------------------- |
 | `accounts/{uid}`      | self only                                  | self only                   |
-| `meta/{uid}`          | any authenticated user                     | admin only                  |
-| `channels/{cid}`      | public                                     | admin only                  |
+| `meta/{uid}`          | any authenticated user                     | admin only (+ functions)    |
+| `channels/{cid}`      | public, except `party` (members only)      | admin only                  |
+| `channels/{cid}/videos/{blockId}` | public, except `party` (members only) | admin only              |
 | `{allPaths=**}`       | admin                                      | admin                       |
+
+The video-block rule gates on `cid`, so a party member reading `channels/party/videos/{blockId}` passes and everyone else is denied — see [Video links](#video-links) for why this single rule is enough. Writes come from the Cloud Function, which bypasses rules entirely; the admin branch covers edits made in the admin panel.
 
 `isAdmin()` reads `meta/{request.auth.uid}.admin`. The wildcard rule grants admins blanket access; specific rules grant additional access to non-admins. Firestore evaluates rules as a logical OR, so combining specific + wildcard does what you'd expect.
 
 **Known caveat:** if a user has no `meta/{uid}` doc at all, the `get(...)` inside `isAdmin()` will error, denying the request. That's safe by default but means new sign-ups need a `meta/{uid}` doc created before they can read anywhere that depends on `isAdmin()`. Bootstrap your first admin manually in the Firebase console.
+
+## Video links
+
+`/channel/:cid/video/:id` carries its channel in the URL, and
+`blockContainingVideo(cid, videoId)` in
+[channel_service.dart](../lib/src/services/firestore/channel_service.dart)
+queries only `channels/{cid}/videos`, so resolving a shared link is gated by
+the same rule as browsing the channel — including Party.
+
+This used to be a bare `/video/:id`, resolved by a `collectionGroup('videos')`
+query across every channel's blocks at once, gated by a rule matching
+`{path=**}/videos/{blockId}`. That doesn't work for Party: a wildcard segment
+like `path` only binds to the real document path on a direct `get`, not inside
+a query, so a rule trying to compare it (`path != /channels/party`) can't be
+proven false and the query is let through unfiltered. Verified against a live
+emulator, an anonymous `collectionGroup('videos')` query returned every Party
+block, including `imageUrl` — which embeds the YouTube video id, the exact
+answer the Party approval challenge exists to protect. Scoping the route to
+one channel removes the collection-group query entirely rather than trying to
+filter it, which Firestore rules cannot reliably do by path.
+
+## Party membership approval
+
+TLDR Party videos are private on YouTube, so knowing a video's URL is itself
+proof of membership. `request_party_video_for_approval` names a video published
+in the last 14 days by title only; `approve_party_video` takes back the URL the
+caller found and grants 90 days of membership on `meta/{uid}.party`.
+
+What holds it together:
+
+| Property | How |
+| --- | --- |
+| A guess cannot be tested offline | The digest is `HMAC-SHA256(PARTY_APPROVAL_SECRET, uid\|nonce\|videoId)`. Without the key, the only way to test a URL is to call `approve_party_video`. |
+| A hash is worthless to another account | `uid` is inside the HMAC. |
+| A correct pair cannot be replayed | A one-shot `nonce` is inside the HMAC, and the attempt is stamped `usedAt` on success. |
+| Guessing is bounded per challenge | 3 wrong URLs and the challenge closes for good. Challenges themselves are unlimited; only the newest 20 stay open. |
+| Reading `meta/{uid}` reveals no answer | The attempt record stores the digest, never the video id. |
+| A near-miss URL still works | The URL is normalised to its 11-character video id first, so `youtu.be/…`, `?t=30` and `/shorts/…` all verify. |
+
+`uid` is the binding key rather than the email address: it is always present,
+immutable, and already what `meta/{uid}` is keyed on.
+
+**Residual weakness.** The whole scheme rests on Party video URLs not being
+enumerable. If the Party channel's uploads ever become public or its video ids
+leak as a list, an attacker can walk the candidate set through
+`approve_party_video` — 3 guesses per challenge, and challenges are unlimited —
+and the 14-day window keeps that set small. Unlimited challenges also let any
+signed-in user harvest recent Party video titles, and cost a Firestore query
+each. App Check is the mitigation for both. Membership is also transferable by simply sharing a URL, which no
+server-side check can prevent. This gates a content tier, not anything
+load-bearing, and is sized accordingly.
 
 ## App Check
 
@@ -69,7 +135,8 @@ App Check is the only mitigation that meaningfully reduces abuse from a stolen A
 
 ## Going public — pre-flight checklist
 
-- [ ] All four keys rotated (`.env` updated, Firebase Remote Config updated, old keys deleted in GCP).
+- [ ] All four keys rotated (`.env` updated, `firebase functions:secrets:set YOUTUBE_API_KEY` re-run, old keys deleted in GCP).
+- [ ] `PARTY_APPROVAL_SECRET` set in Secret Manager.
 - [ ] All four keys restricted (API + application restrictions).
 - [ ] Firestore rules deployed (`firebase deploy --only firestore:rules`).
 - [ ] No `AIza` strings in tracked files: `git ls-files | xargs grep -nE 'AIza[0-9A-Za-z_-]{35}'` returns nothing.

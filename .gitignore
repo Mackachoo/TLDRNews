@@ -47,7 +47,6 @@ app.*.map.json
 # Secrets
 .env
 .env.local
-.env.*.local
 
 # Firebase platform config (regenerate with `flutterfire configure`)
 android/app/google-services.json

@@ -21,18 +21,18 @@ service cloud.firestore {
       allow write:  if false;
     }
 
-    // Channels collection - Public can read all but only admins can write
+    // Channels collection - Public can read all but Party, only the function writes
     match /channels/{cid} {
-      allow read:   if true;
+      allow read:   if cid != 'party' || isPartyMember();
       allow write:  if false;
     }
 
-    // Party Channel - Members can read but only admins can write
-    match /channels/party/{pid} {
-      allow read:   if isAuthenticated() && isPartyMember();
+    // Video blocks - Public can read all but Party, only the function writes
+    match /channels/{cid}/videos/{blockId} {
+      allow read:   if cid != 'party' || isPartyMember();
       allow write:  if false;
     }
-    
+
     //* Helper Functions --------------------------------------------
 
     function isAuthenticated() {
@@ -44,8 +44,13 @@ service cloud.firestore {
       return metaDoc.data.admin == true;
     }
 
+    // `party` is the date the video challenge was passed, good for 90 days.
     function isPartyMember() {
-      let partyDoc = get(/databases/$(database)/documents/channels/party/$(request.auth.uid));
-      return metaDoc.data.party == true;
+      let metaRef = /databases/$(database)/documents/meta/$(request.auth.uid);
+      let party = isAuthenticated() && exists(metaRef)
+                  ? get(metaRef).data.get('party', null)
+                  : null;
+      return party is timestamp && party > request.time - duration.value(90, 'd');
+    }
   }
 }

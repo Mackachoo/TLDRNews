@@ -4,7 +4,6 @@ import 'package:tldrnews_app/src/utils/extensions/context.dart';
 import 'package:tldrnews_app/src/utils/extensions/core.dart';
 import 'package:tldrnews_app/src/widgets/channel_icon.dart';
 
-@JsonSerializable()
 class ChannelSnippet {
   @JsonKey(includeToJson: false)
   final String id;
@@ -15,13 +14,11 @@ class ChannelSnippet {
 
   Widget button(BuildContext context, {bool desaturate = false, void Function(String id)? onTap}) {
     bool active = context.uri.pathSegments.isNotEmpty && context.uri.pathSegments.last == id;
+    final dim = desaturate && !active;
     return IconButton(
       padding: .zero,
       onPressed: !active && onTap != null ? () => onTap(id) : null,
-      icon: ColorFiltered(
-        colorFilter: ColorFilter.saturation(!desaturate || active ? 1 : 0.2),
-        child: icon,
-      ),
+      icon: dim ? ColorFiltered(colorFilter: ColorFilter.saturation(0.2), child: icon) : icon,
     );
   }
 }

@@ -10,6 +10,8 @@ class FirestoreCore {
   CollectionReference get accounts => firestore.collection('accounts');
   @protected
   CollectionReference get channels => firestore.collection('channels');
+  @protected
+  CollectionReference videoBlocks(String cid) => channels.doc(cid).collection('videos');
 
   // * Caching System ---------------------------------------------------
 

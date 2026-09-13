@@ -59,7 +59,10 @@
         ".git",
         "firebase-debug.log",
         "firebase-debug.*.log",
-        "*.local"
+        "*.local",
+        "tests",
+        "requirements-dev.txt",
+        "__pycache__"
       ],
       "runtime": "python314"
     }
