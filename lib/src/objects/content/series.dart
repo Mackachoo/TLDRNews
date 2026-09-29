@@ -5,8 +5,10 @@ import 'package:tldrnews_app/src/objects/timestamp_converter.dart';
 part 'series.g.dart';
 
 @JsonSerializable()
+/// A playlist of videos within a channel, stored in the channel's `series` map.
 class Series extends Content {
   @JsonKey(includeToJson: false)
+  /// Ids of the videos in the playlist, in playlist order.
   List<String> videoIds;
 
   Series({
@@ -18,6 +20,7 @@ class Series extends Content {
     this.videoIds = const [],
   });
 
+  /// Deep copy with its own [videoIds] list.
   Series copy() => Series(
     id: id,
     title: title,

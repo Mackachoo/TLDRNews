@@ -8,6 +8,10 @@ import 'package:tldrnews_app/src/services/auth_service.dart';
 import 'package:tldrnews_app/src/services/firestore_service.dart';
 import 'package:tldrnews_app/src/utils/message.dart';
 
+/// Auth state and sign-in flows.
+///
+/// Follows Firebase's auth stream, loading [account] and [meta] on every change
+/// and notifying listeners. Also owns the shared email form controllers.
 class AuthController with ChangeNotifier {
   static final AuthService _service = AuthService();
   late StreamSubscription<User?> authSub;
@@ -35,10 +39,16 @@ class AuthController with ChangeNotifier {
   /// this, otherwise a deep link is judged against a signed-out state.
   bool resolved = false;
 
+  /// Credential from the latest sign-in in this session.
   UserCredential? credential;
+
+  /// The Firebase user, or `null` when signed out.
   User? get user => AuthService.currentUser;
 
+  /// The user's profile, or `null` when signed out.
   Account? account;
+
+  /// The user's permissions, or `null` when signed out.
   Meta? meta;
 
   VoidCallback get signOut => AuthService.signOut;
@@ -52,6 +62,9 @@ class AuthController with ChangeNotifier {
 
   //* Main Methods ==============================================
 
+  /// Runs [authenticator] behind a loading dialog, then creates the account
+  /// document. Failures are shown as a message. With [checkFormValid], does
+  /// nothing unless the form validates.
   Future requestAuthentication(
     BuildContext context,
     Future<UserCredential?> Function() authenticator, {
@@ -70,6 +83,8 @@ class AuthController with ChangeNotifier {
     }
   }
 
+  /// Reloads the Firebase user, [account] and [meta], e.g. after a membership
+  /// change.
   Future refresh() async {
     try {
       await AuthService.currentUser?.reload();
@@ -81,6 +96,8 @@ class AuthController with ChangeNotifier {
     }
   }
 
+  /// Writes the account document for the signed-in [credential], recording the
+  /// optional [consent] choices (`analytics`, `marketing`).
   Future initializeUser(BuildContext context, {Map<String, bool>? consent}) async {
     try {
       showLoading(context);
@@ -100,6 +117,7 @@ class AuthController with ChangeNotifier {
     }
   }
 
+  /// Shows a friendly message for the Firebase or Google error code in [error].
   void reportError(BuildContext context, Exception error, {String activity = 'logging in'}) {
     String errorCode = error is FirebaseAuthException
         ? error.code
@@ -127,6 +145,8 @@ class AuthController with ChangeNotifier {
     }
   }
 
+  /// Sends a password reset email to the address in the form. Returns whether
+  /// it was sent.
   Future<bool> resetEmail(BuildContext context) async {
     if (formKey.currentState!.validate()) {
       try {
@@ -145,6 +165,7 @@ class AuthController with ChangeNotifier {
     return false;
   }
 
+  /// Empties the email and password fields.
   void clear() {
     emailController.clear();
     passwordController.clear();
@@ -184,6 +205,7 @@ class AuthController with ChangeNotifier {
 
   //* Additional Methods ------------------------------------------
 
+  /// Shows a blocking spinner dialog; dismiss it by popping the root navigator.
   void showLoading(BuildContext context) => showDialog(
     context: context,
     barrierDismissible: false,

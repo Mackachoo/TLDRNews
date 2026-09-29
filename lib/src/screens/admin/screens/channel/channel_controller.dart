@@ -10,20 +10,29 @@ import 'package:tldrnews_app/src/services/functions_service.dart';
 import 'package:tldrnews_app/src/utils/extensions/core.dart';
 import 'package:tldrnews_app/src/utils/message.dart';
 
+/// Editing state for one channel in the admin screen.
+///
+/// Edits go to working copies ([channel] and the loaded [blocks]) and only reach
+/// Firestore on [saveChannel]. [original] is the baseline for detecting changes.
 class AdminChannelController extends ChangeNotifier with VideoPaging {
   bool loading = true;
+  /// True while a YouTube sync is running.
   bool isFetching = false;
 
   @override
   final String cid;
   ChannelSnippet? get snippet => ChannelSnippets.byId(cid);
 
+  /// Copy of the channel as last saved, for comparison.
   Channel? original;
+
+  /// The working copy being edited.
   Channel? channel;
 
   /// Ids of blocks edited since the last save.
   final Set<String> dirtyBlocks = {};
 
+  /// Whether there is anything to save.
   bool get editted => dirtyBlocks.isNotEmpty || _channelEditted;
 
   bool get _channelEditted =>
@@ -44,6 +53,7 @@ class AdminChannelController extends ChangeNotifier with VideoPaging {
 
   //* Editing ----------------------------------------------------------
 
+  /// Saves the channel if changed and each block in [dirtyBlocks].
   Future saveChannel(BuildContext context) async {
     if (channel == null) return;
     try {
@@ -73,6 +83,7 @@ class AdminChannelController extends ChangeNotifier with VideoPaging {
     notifyListeners();
   }
 
+  /// Removes [video] from whichever loaded block holds it.
   Future removeVideo(YoutubeVideo video) async {
     final block = blocks.firstWhereOrNull((block) => block.videos.containsKey(video.id));
     if (block == null) return;
@@ -83,12 +94,14 @@ class AdminChannelController extends ChangeNotifier with VideoPaging {
     notifyListeners();
   }
 
+  /// Adds or replaces a series on the working copy.
   Future<void> setSeries(Series newSeries) async {
     if (channel == null) return;
     channel!.series[newSeries.id] = newSeries;
     notifyListeners();
   }
 
+  /// Removes [series] from the working copy.
   Future removeSeries(Series series) async {
     if (channel == null) return;
     channel!.series.remove(series.id);
@@ -97,7 +110,8 @@ class AdminChannelController extends ChangeNotifier with VideoPaging {
 
   //* Youtube Ingest ---------------------------------------------------
 
-  /// Runs the sync function, which fetches from YouTube and writes the blocks.
+  /// Runs the sync function, which fetches from YouTube and writes the blocks,
+  /// then reloads and reports what was added. Unsaved edits are discarded.
   /// [rebuild] discards the stored blocks and re-downloads the full history.
   Future<void> fetchChannelContentFromYoutube(BuildContext context, {bool rebuild = false}) async {
     isFetching = true;
@@ -124,6 +138,7 @@ class AdminChannelController extends ChangeNotifier with VideoPaging {
 
   //* Private Methods --------------------------------------------------
 
+  /// Drops all local state and reloads channel and newest block from Firestore.
   Future<void> _reload() async {
     resetPaging();
     dirtyBlocks.clear();

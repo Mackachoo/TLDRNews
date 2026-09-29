@@ -1,13 +1,15 @@
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/foundation.dart';
 
+/// Firebase Remote Config bootstrap.
 class ConfigService {
   static final FirebaseRemoteConfig _remoteConfig = FirebaseRemoteConfig.instance;
 
   static bool _initialized = false;
 
-  /// Initialize Remote Config with default values.
-  /// Call this once during app startup. Never throws: an offline start or an
+  /// Fetches and activates Remote Config, at most once an hour.
+  ///
+  /// Call once during app startup. Skipped on web. Never throws: an offline start or an
   /// expired Firebase API key must not block the app.
   static Future<void> initialize() async {
     if (_initialized) return;

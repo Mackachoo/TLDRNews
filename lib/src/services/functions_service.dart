@@ -8,25 +8,29 @@ import 'package:tldrnews_app/src/utils/extensions/core.dart';
 /// Callable Cloud Functions. Only the backend holds the YouTube API key, so all
 /// ingestion goes through here.
 class FunctionsService {
+  /// Region the functions are deployed to.
   static const String region = 'europe-west1';
 
   static final FirebaseFunctions _functions = FirebaseFunctions.instanceFor(region: region);
 
   //* Youtube Ingest ---------------------------------------------------
 
-  /// Pulls new videos and playlists into the channel's blocks. [rebuild] wipes
-  /// the blocks and re-downloads the full history instead.
+  /// Pulls new videos and playlists from YouTube into channel [cid]. [rebuild]
+  /// wipes its blocks and re-downloads the full history instead. The result
+  /// reports `addedVideos` and `addedSeries`.
   static Future<Json?> syncChannel(String cid, {bool rebuild = false}) => _call('sync_channel', {
     'cid': cid,
     'action': 'sync',
     'mode': rebuild ? 'rebuild' : 'incremental',
   });
 
+  /// Looks up the video at a YouTube [url], or `null` if it cannot be resolved.
   static Future<YoutubeVideo?> resolveVideo(String url) async {
     final data = await _call('sync_channel', {'action': 'resolve_video', 'url': url});
     return data == null ? null : YoutubeVideo.fromJson(data);
   }
 
+  /// Looks up the playlist at a YouTube [url], or `null` if it cannot be resolved.
   static Future<Series?> resolveSeries(String url) async {
     final data = await _call('sync_channel', {'action': 'resolve_series', 'url': url});
     return data == null ? null : Series.fromJson(data);
@@ -34,16 +38,22 @@ class FunctionsService {
 
   // *. Party Approval -------------------------------------------------
 
+  /// Asks the backend for a TLDR Party video to approve. The response carries
+  /// what to submit to [approvePartyVideo].
   static Future<Json?> requestVideoForApproval() async {
     return await _call('request_party_video_for_approval');
   }
 
+  /// Submits the [videoUrl] and [hash] from [requestVideoForApproval]; on
+  /// success the backend grants the user TLDR Party membership.
   static Future<Json?> approvePartyVideo(String videoUrl, String hash) async {
     return await _call('approve_party_video', {'url': videoUrl, 'hash': hash});
   }
 
   //* Private Methods --------------------------------------------------
 
+  /// Invokes the callable [name]. Returns its data, or `null` after logging if
+  /// the call fails.
   static Future<Json?> _call(String name, [Json payload = const {}]) async {
     try {
       final result = await _functions.httpsCallable(name).call<Object?>(payload);

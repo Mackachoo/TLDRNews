@@ -4,6 +4,9 @@ import 'package:tldrnews_app/src/app.dart';
 import 'package:tldrnews_app/src/objects/channel/snippets.dart';
 import 'package:tldrnews_app/src/utils/extensions/context.dart';
 
+/// Chrome shared by every route: app bar, channel navbar and a content column
+/// capped at 800px. The navbar sits at the bottom in portrait and the side in
+/// landscape, and is hidden on the home route.
 class AppShell extends StatelessWidget {
   const AppShell({super.key, required this.child});
 
@@ -30,6 +33,8 @@ class AppShell extends StatelessWidget {
     );
   }
 
+  /// App bar titled with the current channel (and "(Admin)" under `/admin`),
+  /// with a back button whenever the route is not the root.
   static AppBar appBar(BuildContext context) {
     final route = GoRouterState.of(context).uri.toString();
     final title =
@@ -74,12 +79,15 @@ class AppShell extends StatelessWidget {
     );
   }
 
+  /// App bar destinations. The admin entry only appears for admins.
   static Map<String, IconData> get actions => {
     if (App.ctlr.auth.meta?.admin == true) '/admin': Icons.admin_panel_settings,
     '/account': Icons.account_circle,
     '/settings': Icons.settings,
   };
 
+  /// Square app bar button that pushes [destination], or does nothing if the
+  /// user is already there.
   static SizedBox actionButton(
     BuildContext context, {
     required String destination,
@@ -100,6 +108,8 @@ class AppShell extends StatelessWidget {
     );
   }
 
+  /// Channel buttons for the channels the user can see. Taps navigate to the
+  /// admin editor for that channel when inside `/admin`, else to the public one.
   static Widget navbar(BuildContext context) {
     final orientation = MediaQuery.of(context).orientation;
     final route = context.uri.toString();

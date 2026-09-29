@@ -1,5 +1,9 @@
 import 'package:material_ui/material_ui.dart';
 
+/// A scrollable grid that picks its column count from the available width.
+///
+/// Fits as many columns as [minItemWidth] allows, up to [maxCrossAxisCount],
+/// and gives each child an equal width. Children keep their own height.
 class ResponsiveGrid extends StatelessWidget {
   const ResponsiveGrid({
     super.key,
@@ -17,7 +21,10 @@ class ResponsiveGrid extends StatelessWidget {
 
   /// List of widgets to display in the grid
   final List<Widget> children;
+  /// Narrowest a column may get before one is dropped.
   final double minItemWidth;
+
+  /// Most columns to use however wide the space.
   final int maxCrossAxisCount;
 
   final EdgeInsets padding;

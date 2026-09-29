@@ -4,9 +4,11 @@ import 'package:tldrnews_app/src/objects/account/account.dart';
 import 'package:tldrnews_app/src/services/firestore/_firestore_core.dart';
 import 'package:tldrnews_app/src/utils/extensions/core.dart';
 
+/// Reads and writes `accounts/{uid}`.
 class AccountService extends FirestoreCore {
   //* CRUD -------------------------------------------------------------
 
+  /// Live updates of the account for [uid]; emits `null` if it does not exist.
   Stream<Account?> stream(String uid) {
     return accounts
         .doc(uid)
@@ -24,8 +26,10 @@ class AccountService extends FirestoreCore {
         });
   }
 
+  /// The account for [uid] as it is now, or `null`.
   Future<Account?> retrieve(String uid) async => stream(uid).first;
 
+  /// Updates the existing document. Returns whether it succeeded.
   Future<bool> update(Account account) async {
     try {
       await accounts.doc(account.uid).update(account.toJson());
@@ -36,6 +40,8 @@ class AccountService extends FirestoreCore {
     }
   }
 
+  /// Writes the account, creating it if needed; [merge] keeps other fields.
+  /// Returns whether it succeeded.
   Future<bool> set(Account account, {bool merge = false}) async {
     try {
       await accounts.doc(account.uid).set(account.toJson(), SetOptions(merge: merge));
@@ -46,12 +52,14 @@ class AccountService extends FirestoreCore {
     }
   }
 
+  /// Whether an account document exists for [uid].
   Future<bool> exists(String uid) async {
     final doc = await accounts.doc(uid).get();
     return doc.exists;
   }
 
-  // This will only work for admins as only they can read other accounts
+  /// The uid of the account with [email], or `null` if none. Admin only, since
+  /// only admins can read other accounts; rethrows on failure.
   Future<String?> find(String email) async {
     try {
       final query = await accounts.where('email', isEqualTo: email).limit(1).get();

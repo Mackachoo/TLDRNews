@@ -1,6 +1,9 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+/// Typed access to on-device key/value storage ([SharedPreferences]).
+///
+/// Setters treat a `null` value as "remove the key".
 class LocalService {
   //* Defaults =======================================================
 
@@ -38,6 +41,8 @@ class LocalService {
     }
   }
 
+  /// Pushes [value] to the front of the list at [key], dropping any earlier copy
+  /// and keeping at most [maxLength] entries (default 100). Useful for recents.
   static Future addStringStack(String key, String value, {int? maxLength}) async {
     final prefs = await SharedPreferences.getInstance();
     List<String> current = (prefs.getStringList(key) ?? [])
@@ -95,6 +100,8 @@ class LocalService {
   //* Custom =======================================================
 
   // Colour
+  /// Reads a colour stored as four channel keys (`key_A`, `_R`, `_G`, `_B`), or
+  /// `null` if any is missing.
   static Future<Color?> getColor(String key) async {
     final a = await getInt('${key}_A');
     final r = await getInt('${key}_R');
@@ -112,6 +119,8 @@ class LocalService {
   }
 
   // DateTime
+  /// Reads a date stored as an ISO 8601 string. Throws if the stored text is
+  /// not a valid date.
   static Future<DateTime?> getDateTime(String key) async {
     final value = await getString(key);
     if (value == null) return null;
@@ -122,6 +131,7 @@ class LocalService {
       setString(key, value?.toIso8601String());
 
   // Theme
+  /// Reads a [ThemeMode] stored by name, or `null` if absent or unrecognised.
   static Future<ThemeMode?> getThemeMode(String key) async {
     switch (await getString(key)) {
       case 'light':

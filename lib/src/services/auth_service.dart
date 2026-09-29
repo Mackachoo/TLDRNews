@@ -2,13 +2,19 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
+/// Thin wrapper over Firebase Auth. Unlike the Firestore services it throws on
+/// failure, so callers such as [AuthController] can map error codes to messages.
 class AuthService {
   static final FirebaseAuth _auth = FirebaseAuth.instance;
+  /// Emits the signed-in user, or `null` on sign-out.
   static Stream<User?> get state => _auth.authStateChanges();
+  /// The signed-in user right now, or `null`.
   static User? get currentUser => _auth.currentUser;
 
   //* General authentication methods
   static Future<void> signOut() async => await _auth.signOut();
+  /// Deletes the signed-in user's auth record. Firebase may demand a recent
+  /// sign-in first.
   static Future<void> deleteAccount() async => await currentUser!.delete();
 
   //* Email and password authentication
@@ -18,6 +24,7 @@ class AuthService {
   Future<UserCredential> registerWithEmail(String email, String password) async =>
       await _auth.createUserWithEmailAndPassword(email: email, password: password);
 
+  /// Sends a password reset email to [email].
   Future<void> resetEmail(String email) async => await _auth.sendPasswordResetEmail(email: email);
 
   //* OAuth authentication
@@ -39,6 +46,7 @@ class AuthService {
     return false;
   }
 
+  /// Google sign-in: a popup on web, the native flow elsewhere.
   Future<UserCredential> signInWithGoogle() async {
     try {
       if (kIsWeb) {
@@ -76,6 +84,7 @@ class AuthService {
     }
   }
 
+  /// Sign in with Apple, requesting the email and name scopes.
   Future<UserCredential> signInWithApple() async {
     if (kIsWeb) {
       // Web implementation

@@ -11,6 +11,8 @@ import 'firebase_options.dart';
 const useEmulator = bool.fromEnvironment('USE_FIREBASE_EMULATOR');
 const emulatorHost = String.fromEnvironment('FIREBASE_EMULATOR_HOST', defaultValue: '127.0.0.1');
 
+/// Initialises Firebase (optionally pointed at the local emulators) and remote
+/// config, then starts the app.
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -22,6 +24,8 @@ void main() async {
   runApp(App());
 }
 
+/// Points Firestore and callable Functions at the emulators started by
+/// `firebase emulators:start`, on [emulatorHost].
 void connectEmulators() {
   FirebaseFirestore.instance.useFirestoreEmulator(emulatorHost, 8080);
   FirebaseFunctions.instanceFor(

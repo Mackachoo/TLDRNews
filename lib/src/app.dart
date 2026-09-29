@@ -13,7 +13,10 @@ import 'package:tldrnews_app/src/screens/settings/settings_screen.dart';
 import 'package:tldrnews_app/src/screens/video/video_screen.dart';
 import 'package:tldrnews_app/src/utils/theme.dart';
 
+/// Root widget: builds the [MaterialApp.router] and rebuilds when [AppCtlr.settings]
+/// or [AppCtlr.auth] change (theme mode, signed-in state).
 class App extends StatelessWidget {
+  /// The shared [AppCtlr], reachable from anywhere without a context.
   static final ctlr = AppCtlr();
 
   late final GoRouter appRouter;
@@ -38,9 +41,16 @@ class App extends StatelessWidget {
     );
   }
 
+  /// Wraps [child] in a page with no transition, keyed per route.
   static Page<void> page(GoRouterState state, Widget child) =>
       NoTransitionPage(key: state.pageKey, child: child);
 
+  /// Builds the route table under a single [AppShell].
+  ///
+  /// The redirect guard sends visitors home from `/admin/**` unless
+  /// [Meta.admin] is set, and from any `party` route unless [Meta.partyState] is
+  /// [PartyState.member]. Both wait for [AuthController.resolved] so a deep link
+  /// is not judged against a signed-out state.
   static GoRouter router() {
     GoRouter.optionURLReflectsImperativeAPIs = true;
     return GoRouter(

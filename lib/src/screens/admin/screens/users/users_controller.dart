@@ -3,8 +3,10 @@ import 'package:tldrnews_app/src/objects/account/account.dart';
 import 'package:tldrnews_app/src/services/firestore_service.dart';
 import 'package:tldrnews_app/src/utils/message.dart';
 
+/// Lists admins and grants or revokes admin rights by email.
 class AdminUsersController extends ChangeNotifier {
   bool loading = true;
+  /// Current admins, or `null` until loaded.
   List<Account?>? admins;
 
   AdminUsersController() {
@@ -18,6 +20,8 @@ class AdminUsersController extends ChangeNotifier {
     });
   }
 
+  /// Makes the account with [email] an admin. Reports failure, including an
+  /// unknown email or an existing admin, as a message.
   Future addAdmin(BuildContext context, String email) async {
     try {
       final uid = await FirestoreService.account.find(email);
@@ -38,6 +42,7 @@ class AdminUsersController extends ChangeNotifier {
     }
   }
 
+  /// Revokes admin rights from [uid].
   Future removeAdmin(BuildContext context, String uid) async {
     try {
       await FirestoreService.meta.set(uid, key: 'admin', value: false);

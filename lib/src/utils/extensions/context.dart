@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:tldrnews_app/src/utils/extensions/core.dart';
 // import 'package:skiwi_share/localizations.dart';
 
+/// Shortcuts for theme and routing lookups on a [BuildContext].
 extension LocaleExtension on BuildContext {
   // AppLocalizations get locale => AppLocalizations.of(this)!;
 
@@ -17,5 +18,6 @@ extension LocaleExtension on BuildContext {
   void forcePop<T extends Object?>([T? result]) => GoRouter.of(this).forcePop(result);
   void goParams(Map<String, String> params, {Object? extra}) =>
       GoRouter.of(this).goParams(params, extra: extra);
+  /// The current route's location.
   Uri get uri => GoRouterState.of(this).uri;
 }

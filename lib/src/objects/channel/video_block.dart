@@ -11,14 +11,21 @@ class VideoBlock {
   VideoBlock({required this.startAt, Map<String, YoutubeVideo>? videos})
     : videos = videos ?? {};
 
+  /// Start boundary of the block; also its document id via [id].
   final DateTime startAt;
+
+  /// Videos in this block keyed by video id.
   final Map<String, YoutubeVideo> videos;
 
+  /// Document id: [startAt] in UTC, formatted by [formatId].
   String get id => formatId(startAt);
+  /// Number of videos in the block.
   int get count => videos.length;
 
+  /// The videos, newest first.
   List<YoutubeVideo> get sorted => videos.values.toList()..sort(Content.byPublishedDesc);
 
+  /// Formats [moment] as a sortable UTC id such as `20260930T120000Z`.
   static String formatId(DateTime moment) {
     String two(int value) => value.toString().padLeft(2, '0');
     final utc = moment.toUtc();
@@ -26,9 +33,12 @@ class VideoBlock {
         '${two(utc.hour)}${two(utc.minute)}${two(utc.second)}Z';
   }
 
+  /// Deep copy, safe to mutate without touching a cached instance.
   VideoBlock copy() =>
       VideoBlock(startAt: startAt, videos: videos.map((k, v) => MapEntry(k, v.copy())));
 
+  /// Serialises the block with the derived fields (`oldest`, `newest`, `count`,
+  /// `videoIds`) that queries rely on, recomputed from [videos].
   Map<String, dynamic> toJson() {
     final published = videos.values.map((video) => video.published).nonNulls.toList()..sort();
     return {

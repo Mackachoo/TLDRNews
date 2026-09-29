@@ -8,12 +8,19 @@ import 'package:tldrnews_app/src/objects/timestamp_converter.dart';
 import 'package:tldrnews_app/src/services/firestore/_firestore_core.dart';
 import 'package:tldrnews_app/src/utils/extensions/core.dart';
 
+/// Reads and writes channels and their video blocks.
+///
+/// Channel documents are cached for 15 minutes. Videos are never cached here;
+/// they are paged by [VideoPaging].
 class ChannelService extends FirestoreCore {
   @override
   Duration get cacheAge => const Duration(minutes: 15);
 
   //* CRUD -------------------------------------------------------------
 
+  /// Loads channel [cid], from cache unless [useCache] is false. Malformed
+  /// series are skipped. Returns `null` if missing. The instance is shared, so
+  /// [Channel.copy] before editing.
   Future<Channel?> retrieve(String cid, {bool useCache = true}) async {
     try {
       Channel? channel = useCache ? checkCached<Channel>(cid) : null;
@@ -54,6 +61,8 @@ class ChannelService extends FirestoreCore {
     }
   }
 
+  /// Updates an existing channel and refreshes its cache entry. `null` if the
+  /// channel does not exist, otherwise whether the write succeeded.
   Future<bool?> update(Channel updates) async {
     Channel? channel = await retrieve(updates.id, useCache: false);
     if (channel == null) return null;
@@ -69,6 +78,7 @@ class ChannelService extends FirestoreCore {
     }
   }
 
+  /// Writes a channel, creating it if needed; [merge] keeps other fields.
   Future<bool?> set(Channel updates, {bool merge = false}) async {
     try {
       await channels.doc(updates.id).set(updates.toJson(), SetOptions(merge: merge));
@@ -81,6 +91,8 @@ class ChannelService extends FirestoreCore {
     }
   }
 
+  /// Deletes channel [channelId] and evicts it from the cache. Its video blocks
+  /// are left in place.
   Future<bool> delete(String channelId) async {
     try {
       await channels.doc(channelId).delete();
@@ -95,6 +107,7 @@ class ChannelService extends FirestoreCore {
 
   //* Video Blocks -----------------------------------------------------
 
+  /// The most recent block of channel [cid], or `null` if it has none.
   Future<VideoBlock?> newestVideoBlock(String cid) =>
       _firstBlock(videoBlocks(cid).orderBy('startAt', descending: true).limit(1), 'newest');
 
@@ -122,6 +135,7 @@ class ChannelService extends FirestoreCore {
     }
   }
 
+  /// Writes [block] to channel [cid], replacing the stored block with that id.
   Future<bool> setVideoBlock(String cid, VideoBlock block) async {
     try {
       await videoBlocks(cid).doc(block.id).set(block.toJson());
@@ -135,6 +149,8 @@ class ChannelService extends FirestoreCore {
 
   //* Private Methods --------------------------------------------------
 
+  /// First block matched by [query], or `null`. [caller] names the public method
+  /// in the log line.
   Future<VideoBlock?> _firstBlock(Query query, String caller) async {
     try {
       final snapshot = await query.get();
@@ -146,6 +162,8 @@ class ChannelService extends FirestoreCore {
     }
   }
 
+  /// Builds a block from its document, skipping malformed videos. `null` if it
+  /// has no valid `startAt`.
   VideoBlock? _deserialize(DocumentSnapshot doc) {
     final data = doc.data() as Json?;
     final startAt = const TimestampConverter().fromJson(data?['startAt']);

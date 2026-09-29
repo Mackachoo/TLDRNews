@@ -5,8 +5,10 @@ import 'package:tldrnews_app/src/objects/timestamp_converter.dart';
 part 'video.g.dart';
 
 @JsonSerializable()
+/// A watchable [Content] with a playback address.
 class Video extends Content {
   @JsonKey(includeToJson: false)
+  /// Where the video plays from.
   String? videoUrl;
 
   Video({

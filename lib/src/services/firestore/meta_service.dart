@@ -4,9 +4,11 @@ import 'package:tldrnews_app/src/objects/account/meta.dart';
 import 'package:tldrnews_app/src/services/firestore/_firestore_core.dart';
 import 'package:tldrnews_app/src/utils/extensions/core.dart';
 
+/// Reads and writes `meta/{uid}` permission documents.
 class MetaService extends FirestoreCore {
   //* CRUD -------------------------------------------------------------
 
+  /// The [Meta] for [uid], or `null` if missing.
   Future<Meta?> retrieve(String uid) async {
     try {
       DocumentSnapshot metaDoc = await meta.doc(uid).get();
@@ -21,6 +23,8 @@ class MetaService extends FirestoreCore {
     }
   }
 
+  /// All [Meta] documents whose [key] equals [value], keyed by uid. Rethrows on
+  /// failure.
   Future<Map<String, Meta>> retrieveBy(String key, Object? value) async {
     try {
       QuerySnapshot metaQuery = await meta.where(key, isEqualTo: value).get();
@@ -38,6 +42,8 @@ class MetaService extends FirestoreCore {
     }
   }
 
+  /// Merges a single [key]/[value] pair into [uid]'s document. Rethrows on
+  /// failure.
   Future<void> set(String uid, {required String key, Object? value}) async {
     try {
       await meta.doc(uid).set({key: value}, SetOptions(merge: true));

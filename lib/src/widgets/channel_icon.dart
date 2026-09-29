@@ -1,10 +1,18 @@
 import 'package:material_ui/material_ui.dart';
 
+/// A square channel logo on a solid or image background.
+///
+/// Use the named factories, or [ChannelIcon.fromId] to pick one by channel id.
 class ChannelIcon extends StatelessWidget {
   const ChannelIcon({super.key, required this.icon, this.color, this.background});
 
+  /// Asset path of the logo, drawn at 80% of the width.
   final String icon;
+
+  /// Asset path of a background image; takes the place of [color].
   final String? background;
+
+  /// Background colour.
   final Color? color;
 
   @override
@@ -37,6 +45,7 @@ class ChannelIcon extends StatelessWidget {
 
   // * Constructors --------------------------------
 
+  /// The icon for channel [id]. Throws [ArgumentError] for an unknown id.
   factory ChannelIcon.fromId(String id) {
     switch (id) {
       case 'uk':

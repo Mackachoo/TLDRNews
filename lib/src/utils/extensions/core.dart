@@ -3,11 +3,15 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter/rendering.dart';
 import 'package:go_router/go_router.dart';
 
+/// A decoded JSON object.
 typedef Json = Map<String, dynamic>;
 
 //* General Extensions -----------------------------------
 
+/// Navigation helpers that keep the current location in the URL.
 extension RouterExtension on GoRouter {
+  /// Pushes [added] as a child of the current path, e.g. `/channel/uk` plus
+  /// `video/x` becomes `/channel/uk/video/x`.
   Future<T?> add<T extends Object?>(String added, {Object? extra}) async {
     String base = routerDelegate.currentConfiguration.uri.path;
     if (!base.endsWith('/')) base += '/';
@@ -20,6 +24,7 @@ extension RouterExtension on GoRouter {
     );
   }
 
+  /// Pops the top route and syncs the URL, or goes to `/` if nothing can pop.
   void forcePop<T extends Object?>([T? result]) {
     if (routerDelegate.canPop()) {
       routerDelegate.pop<T>(result);
@@ -29,6 +34,8 @@ extension RouterExtension on GoRouter {
     }
   }
 
+  /// Navigates to the current path with [params] merged over its existing query
+  /// parameters.
   void goParams(Map<String, String> params, {Object? extra}) {
     Map<String, String> newParams = {}
       ..addAll(state.uri.queryParameters)
@@ -38,10 +45,13 @@ extension RouterExtension on GoRouter {
   }
 }
 
+/// Display helpers for strings.
 extension StringExtension on String {
+  /// First letter upper case, the rest lower case.
   String capitalize() =>
       length == 1 ? toUpperCase() : '${this[0].toUpperCase()}${substring(1).toLowerCase()}';
 
+  /// Up to two initials from the words, e.g. `Ada Lovelace` becomes `AL`.
   String toInitials() {
     List<String> parts = split(' ');
     if (parts.isEmpty) return '';
@@ -50,6 +60,7 @@ extension StringExtension on String {
   }
 }
 
+/// Relative-date helpers, all measured against the local clock.
 extension DateTimeExtension on DateTime {
   bool isToday() {
     final now = DateTime.now();
@@ -61,11 +72,13 @@ extension DateTimeExtension on DateTime {
     return year == yesterday.year && month == yesterday.month && day == yesterday.day;
   }
 
+  /// Whole days elapsed since this date; negative if it is in the future.
   int daysAgo() {
     final now = DateTime.now();
     return now.difference(this).inDays;
   }
 
+  /// Whole days until this date; negative if it has passed.
   int daysToGo() {
     final now = DateTime.now();
     return difference(now).inDays;
@@ -81,6 +94,8 @@ extension DateTimeExtension on DateTime {
     return names[(weekday - 1) % 7];
   }
 
+  /// Compact label: the time today, `yesterday`, the weekday within the last
+  /// week, else `dd/mm/yyyy`.
   String toUI() {
     if (isToday()) return '$hour:${minute.toString().padLeft(2, '0')}';
     if (isYesterday()) return 'yesterday';
@@ -89,8 +104,11 @@ extension DateTimeExtension on DateTime {
   }
 }
 
+/// Hex formatting for colours.
 extension ColorExtension on Color {
+  /// Hex with a leading `#`, without alpha, e.g. `#4EA4AC`.
   String get hhex => '#$hex';
+  /// Upper-case RGB hex without alpha or `#`.
   String get hex => toARGB32().toRadixString(16).toUpperCase().padLeft(8, '0').substring(2);
 }
 
